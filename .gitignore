@@ -1,0 +1,24 @@
+##############
+# Files
+FirebaseCppApp-6_15_2.so
+FirebaseCppApp-6_15_2.so.meta
+
+##############
+# Extensions
+*.csproj
+.vsconfig
+*.zip
+*.sln
+*.suo
+
+##############
+# Folders
+Library/
+Logs/
+obj/
+Temp/
+UserSettings/
+.DS_Store
+.idea/
+.vs/
+.vscode/
