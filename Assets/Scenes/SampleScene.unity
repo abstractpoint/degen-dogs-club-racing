@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657838, g: 0.49641234, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -500,6 +500,7 @@ MonoBehaviour:
   contentbox: {fileID: 4476773074366004291}
   timer: {fileID: 7263426466773438641}
   timeRemaining: 300
+  roundNumber: 1
   player: 0
   opponent: 0
   playerDataPrefab: {fileID: 543855482138513906, guid: 66c70ffee9995c24eb2cbf3baba1a14b, type: 3}
@@ -4043,8 +4044,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 145.5, y: -11.69}
-  m_SizeDelta: {x: 200, y: 49.22608}
+  m_AnchoredPosition: {x: 220.5, y: -11.69}
+  m_SizeDelta: {x: 350, y: 49.22608}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5458975414097487180
 GameObject:

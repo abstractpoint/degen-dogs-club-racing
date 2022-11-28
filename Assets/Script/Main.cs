@@ -16,6 +16,8 @@ public class Main : MonoBehaviour
     public TextMeshProUGUI timer;
     //total time
     public float timeRemaining = 300;
+    //round childCount
+    public int roundNumber = 0;
     //time boolean
     private bool timerIsRunning = false;
     
@@ -87,7 +89,7 @@ public class Main : MonoBehaviour
         timeToDisplay += 1;
         float minutes = Mathf.FloorToInt(timeToDisplay / 60); 
         float seconds = Mathf.FloorToInt(timeToDisplay % 60);
-        timer.text = string.Format("{0:0}m{1:00}s", minutes, seconds);
+        timer.text = string.Format("Round {2} - {0:0}m{1:00}s", minutes, seconds, roundNumber);
     }
 
     //Reset time
@@ -98,6 +100,8 @@ public class Main : MonoBehaviour
         timerIsRunning = true;
         indexScreen.SetActive(true);
         ChallengeConfirmScreen.SetActive(false);
+        //incr round number
+        roundNumber += 1;
     }
 
     //on click challenge
