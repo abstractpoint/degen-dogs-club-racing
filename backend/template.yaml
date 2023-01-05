@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  backend
+
+  Sample SAM Template for backend
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Environment:
+      Variables:
+        TABLE_NAME:
+          Ref: InfraTable
+  Api:
+    Cors:
+      AllowMethods: "'OPTIONS,POST,PUT,GET'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
+Resources:
+  ChallengeFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: arena-service/
+      Handler: app.challengeHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      Events:
+        Arena:
+          Type: Api
+          Properties:
+            Path: /challenge
+            Method: put
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              Ref: InfraTable
+        - DynamoDBWritePolicy:
+            TableName:
+              Ref: InfraTable
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        # Sourcemap: true # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints:
+          - app.ts
+  ArenaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: arena-service/
+      Handler: app.arenaHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      Events:
+        Arena:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /arena
+            Method: get
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              Ref: InfraTable
+        - DynamoDBWritePolicy:
+            TableName:
+              Ref: InfraTable
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        # Sourcemap: true # Enabling source maps will create the required NODE_OPTIONS environment variables on your lambda function during sam build
+        EntryPoints: 
+          - app.ts
+  InfraTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: arena-infra-table
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gs1pk
+          AttributeType: S
+        - AttributeName: gs1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: gs1
+          KeySchema:
+            - AttributeName: gs1pk
+              KeyType: HASH
+            - AttributeName: gs1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  ArenaApi:
+    Description: "API Gateway endpoint URL for Prod stage for Arena Service"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/..."
+  ArenaFunction:
+    Description: "Arena Lambda Function ARN"
+    Value: !GetAtt ArenaFunction.Arn
+  ArenaFunctionIamRole:
+    Description: "Implicit IAM Role created for Arena function"
+    Value: !GetAtt ArenaFunctionRole.Arn
