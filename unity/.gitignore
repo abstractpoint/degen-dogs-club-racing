@@ -2,6 +2,8 @@
 # Files
 FirebaseCppApp-6_15_2.so
 FirebaseCppApp-6_15_2.so.meta
+.idea
+.vs
 
 ##############
 # Extensions
@@ -10,6 +12,7 @@ FirebaseCppApp-6_15_2.so.meta
 *.zip
 *.sln
 *.suo
+.DS_Store
 
 ##############
 # Folders
@@ -18,7 +21,3 @@ Logs/
 obj/
 Temp/
 UserSettings/
-.DS_Store
-.idea/
-.vs/
-.vscode/

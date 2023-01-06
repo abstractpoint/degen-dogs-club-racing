@@ -25,14 +25,14 @@ public class Playermanager : MonoBehaviour
         //nft image
         transform.GetChild(0).GetComponent<Image>().sprite = DogImage;
         //power random 
-        transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = power.ToString()+"p/h";
+        transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = power.ToString() + "p/h";
         //pot (Coins)
         transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = pot.ToString();
         //off challenge button
-        transform.GetChild(3).gameObject.SetActive(false);
+        //transform.GetChild(3).gameObject.SetActive(false);
         transform.GetChild(3).gameObject.GetComponent<Button>().onClick.AddListener(challengeButton);
         //on play as button
-        transform.GetChild(4).gameObject.SetActive(true);
+        //transform.GetChild(4).gameObject.SetActive(true);
         // TODO: Functionality still needs some work
         transform.GetChild(4).gameObject.GetComponent<Button>().onClick.AddListener(playasButton);
     }
@@ -42,7 +42,7 @@ public class Playermanager : MonoBehaviour
         //Set player values to main script & off play as button
         playAs = true;
         transform.GetChild(4).GetComponent<Button>().interactable = false;
-        Main.instance.OnSetChallenge();
+        //Main.instance.OnSetChallenge();
         Main.instance.player = index;
         Main.instance.playerimage = DogImage;
         Main.instance.playerstre = (int)strenghvalue;
@@ -57,6 +57,8 @@ public class Playermanager : MonoBehaviour
         Main.instance.oppostre = (int)strenghvalue;
         Main.instance.indexScreen.SetActive(false);
         Main.instance.ChallengeConfirmScreen.SetActive(true);
+        ServerManager.Instance.postData = new PostData(index.ToString(), ServerManager.Instance.playerData.metadata.arenaStateId);
+
         Main.instance.ChallengeConfirmScreen.GetComponent<ChallengeConfirmScreen>().SetChallengeData();
         Main.instance.oppoPot = pot;
     }

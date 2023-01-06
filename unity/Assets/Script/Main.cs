@@ -20,7 +20,7 @@ public class Main : MonoBehaviour
     public int roundNumber = 0;
     //time boolean
     private bool timerIsRunning = false;
-    
+
     //index
     public int player, opponent;
     //list data prefab
@@ -38,14 +38,16 @@ public class Main : MonoBehaviour
     //pot (Coins)
     public int playerPot, oppoPot;
 
-    private void Awake() 
+    private void Awake()
     {
         //instance
         instance = this;
 
         //Refresh Main screen with initial data
+        ChallengeConfirmScreen.SetActive(false);
+        indexScreen.SetActive(true);
+        RaceScreen.SetActive(false);
         OnRefreshPanel();
-
     }
 
     // Start is called before the first frame update
@@ -87,7 +89,7 @@ public class Main : MonoBehaviour
     {
         //Convert time to hour and minute format
         timeToDisplay += 1;
-        float minutes = Mathf.FloorToInt(timeToDisplay / 60); 
+        float minutes = Mathf.FloorToInt(timeToDisplay / 60);
         float seconds = Mathf.FloorToInt(timeToDisplay % 60);
         timer.text = string.Format("Round {2} - {0:0}m{1:00}s", minutes, seconds, roundNumber);
     }
@@ -110,7 +112,7 @@ public class Main : MonoBehaviour
         //set all list button to challenge except one who play as
         for (int i = 0; i < contentbox.transform.childCount; i++)
         {
-            if(!contentbox.transform.GetChild(i).GetComponent<Playermanager>().playAs)
+            if (!contentbox.transform.GetChild(i).GetComponent<Playermanager>().playAs)
             {
                 contentbox.transform.GetChild(i).GetChild(3).gameObject.SetActive(true);
                 contentbox.transform.GetChild(i).GetChild(4).gameObject.SetActive(false);
@@ -127,12 +129,14 @@ public class Main : MonoBehaviour
     public void UpdatePlayerCoin()
     {
         //Player Coin Updation
-        contentbox.GetChild(player).GetComponent<Playermanager>().pot = playerPot;
-        contentbox.GetChild(player).GetComponent<Playermanager>().SetupData();
+        int _playerIndex = ServerManager.Instance.playerData.players.FindIndex(data => int.Parse(data.id) == player);
+        contentbox.GetChild(_playerIndex).GetComponent<Playermanager>().pot = playerPot;
+        contentbox.GetChild(_playerIndex).GetComponent<Playermanager>().SetupData();
 
         //Opponent Coin Updation
-        contentbox.GetChild(opponent).GetComponent<Playermanager>().pot = oppoPot;
-        contentbox.GetChild(opponent).GetComponent<Playermanager>().SetupData();
+        int _opponentIndex = ServerManager.Instance.playerData.players.FindIndex(data => int.Parse(data.id) == opponent);
+        contentbox.GetChild(_opponentIndex).GetComponent<Playermanager>().pot = oppoPot;
+        contentbox.GetChild(_opponentIndex).GetComponent<Playermanager>().SetupData();
     }
 
     //Reset Panel
@@ -140,14 +144,15 @@ public class Main : MonoBehaviour
     {
         //on index screen to challenge
         //change strength of player and opponent
-        contentbox.GetChild(player).GetComponent<Playermanager>().strenghvalue = (int)(System.Math.Round(Random.Range(0.01f, 1.00f),2)*100);
-        playerstre = (int)contentbox.GetChild(player).GetComponent<Playermanager>().strenghvalue;
-        Debug.Log("New player strength: "+playerstre);
-        contentbox.GetChild(opponent).GetComponent<Playermanager>().strenghvalue = (int)(System.Math.Round(Random.Range(0.01f, 1.00f),2)*100);
-        oppostre = (int)contentbox.GetChild(opponent).GetComponent<Playermanager>().strenghvalue;
-        Debug.Log("New opponent strength: "+oppostre);
-        
-        Main.instance.OnSetChallenge();
+        //contentbox.GetChild(player).GetComponent<Playermanager>().strenghvalue = (int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);
+        //playerstre = (int)contentbox.GetChild(player).GetComponent<Playermanager>().strenghvalue;
+        //Debug.Log("New player strength: " + playerstre);
+        //contentbox.GetChild(opponent).GetComponent<Playermanager>().strenghvalue = (int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);
+        //oppostre = (int)contentbox.GetChild(opponent).GetComponent<Playermanager>().strenghvalue;
+        //Debug.Log("New opponent strength: " + oppostre);
+
+        //Main.instance.OnSetChallenge();
+        ServerManager.Instance.OnLoadArenaData();
         ChallengeConfirmScreen.SetActive(false);
         indexScreen.SetActive(true);
         RaceScreen.SetActive(false);
@@ -156,27 +161,29 @@ public class Main : MonoBehaviour
     //Start game data setup
     public void OnRefreshPanel()
     {
-        ChallengeConfirmScreen.SetActive(false);
-        indexScreen.SetActive(true);
-        RaceScreen.SetActive(false);
-
         //destroy all child of container
-        foreach (Transform child in contentbox.transform) 
+        foreach (Transform child in contentbox.transform)
         {
             GameObject.Destroy(child.gameObject);
         }
 
+        List<Player> playersData = ServerManager.Instance.playerData.players;
+        Metadata playerMetadata = ServerManager.Instance.playerData.metadata;
+
         //instantiate list data prefab with initial generated data
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < playersData.Count; i++)
         {
             GameObject chara = Instantiate(playerDataPrefab, Vector3.zero, Quaternion.identity, contentbox.transform);
-            chara.GetComponent<Playermanager>().index = i;
-            chara.GetComponent<Playermanager>().DogImage = dogimagelist[Random.Range(0, dogimagelist.Count-1)];
-            chara.GetComponent<Playermanager>().power = (float)Random.Range(0f, 100f);
-            chara.GetComponent<Playermanager>().pot = Random.Range(700, 1000);
-            chara.GetComponent<Playermanager>().strenghvalue = (int)(System.Math.Round(Random.Range(0.01f, 1.00f),2)*100);
-            Debug.Log(i+" Strength:"+ chara.GetComponent<Playermanager>().strenghvalue);
-            chara.GetComponent<Playermanager>().playAs = false;
+            chara.GetComponent<Playermanager>().index = int.Parse(playersData[i].id);
+            chara.GetComponent<Playermanager>().DogImage = dogimagelist[int.Parse(playersData[i].id)];
+            chara.GetComponent<Playermanager>().power = (float)(playersData[i].flowRate * 60 * 60);//(float)Random.Range(0f, 100f);
+            chara.GetComponent<Playermanager>().pot = playersData[i].balance;//Random.Range(700, 1000);
+            chara.GetComponent<Playermanager>().strenghvalue = (float)playerMetadata.playerStrength * 100; //(int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);
+            bool isPLayAs = playerMetadata.playerId == playersData[i].id;
+            chara.GetComponent<Playermanager>().playAs = isPLayAs;
+            if (isPLayAs) chara.GetComponent<Playermanager>().playasButton();
+            chara.transform.GetChild(3).gameObject.SetActive(!isPLayAs);
+            chara.transform.GetChild(4).gameObject.SetActive(isPLayAs);
         }
     }
 }
