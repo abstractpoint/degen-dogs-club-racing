@@ -22,7 +22,7 @@ public class Main : MonoBehaviour
     private bool timerIsRunning = false;
 
     //index
-    public int player, opponent;
+    public string player, opponent;
     //list data prefab
     public GameObject playerDataPrefab;
 
@@ -129,12 +129,12 @@ public class Main : MonoBehaviour
     public void UpdatePlayerCoin()
     {
         //Player Coin Updation
-        int _playerIndex = ServerManager.Instance.playerData.players.FindIndex(data => int.Parse(data.id) == player);
+        int _playerIndex = ServerManager.Instance.playerData.players.FindIndex(data => data.id == player);
         contentbox.GetChild(_playerIndex).GetComponent<Playermanager>().pot = playerPot;
         contentbox.GetChild(_playerIndex).GetComponent<Playermanager>().SetupData();
 
         //Opponent Coin Updation
-        int _opponentIndex = ServerManager.Instance.playerData.players.FindIndex(data => int.Parse(data.id) == opponent);
+        int _opponentIndex = ServerManager.Instance.playerData.players.FindIndex(data => data.id == opponent);
         contentbox.GetChild(_opponentIndex).GetComponent<Playermanager>().pot = oppoPot;
         contentbox.GetChild(_opponentIndex).GetComponent<Playermanager>().SetupData();
     }
@@ -142,17 +142,6 @@ public class Main : MonoBehaviour
     //Reset Panel
     public void OnResetPanel()
     {
-        //on index screen to challenge
-        //change strength of player and opponent
-        //contentbox.GetChild(player).GetComponent<Playermanager>().strenghvalue = (int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);
-        //playerstre = (int)contentbox.GetChild(player).GetComponent<Playermanager>().strenghvalue;
-        //Debug.Log("New player strength: " + playerstre);
-        //contentbox.GetChild(opponent).GetComponent<Playermanager>().strenghvalue = (int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);
-        //oppostre = (int)contentbox.GetChild(opponent).GetComponent<Playermanager>().strenghvalue;
-        //Debug.Log("New opponent strength: " + oppostre);
-
-        //Main.instance.OnSetChallenge();
-        ServerManager.Instance.OnLoadArenaData();
         ChallengeConfirmScreen.SetActive(false);
         indexScreen.SetActive(true);
         RaceScreen.SetActive(false);
@@ -174,8 +163,8 @@ public class Main : MonoBehaviour
         for (int i = 0; i < playersData.Count; i++)
         {
             GameObject chara = Instantiate(playerDataPrefab, Vector3.zero, Quaternion.identity, contentbox.transform);
-            chara.GetComponent<Playermanager>().index = int.Parse(playersData[i].id);
-            chara.GetComponent<Playermanager>().DogImage = dogimagelist[int.Parse(playersData[i].id)];
+            chara.GetComponent<Playermanager>().index = playersData[i].id;
+            chara.GetComponent<Playermanager>().DogImage = dogimagelist[int.Parse(playersData[i].image)];
             chara.GetComponent<Playermanager>().power = (float)(playersData[i].flowRate * 60 * 60);//(float)Random.Range(0f, 100f);
             chara.GetComponent<Playermanager>().pot = playersData[i].balance;//Random.Range(700, 1000);
             chara.GetComponent<Playermanager>().strenghvalue = (float)playerMetadata.playerStrength * 100; //(int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);

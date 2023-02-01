@@ -17,6 +17,7 @@ public class Metadata
 public class Player
 {
     public string id;
+    public string image;
     public double flowRate;
     public int balance;
 }
@@ -81,7 +82,6 @@ public class ServerManager : MonoBehaviour
 
     public ChallengeData challengeData; //challange data responce
 
-    public PostData postData; // post data
     #endregion
 
     #region Unity_Callbacks
@@ -105,14 +105,6 @@ public class ServerManager : MonoBehaviour
         yield return StartCoroutine(LoadArenaData(m_BaseGetUrl));
         LoadNextScene();
     }
-
-    //void Update()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.X))
-    //    {
-    //        StartCoroutine(LoadChallengeData(m_BasePostUrl, new PostData("2", "6DC419FB-311F-4F57-9FAA-A7A743519B10")));
-    //    }
-    //}
 
     #endregion
 

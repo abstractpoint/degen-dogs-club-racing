@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class Playermanager : MonoBehaviour
 {
-    public int index;
+    public string index;
     public Sprite DogImage;
     public float power;
     public int pot;
@@ -57,7 +57,6 @@ public class Playermanager : MonoBehaviour
         Main.instance.oppostre = (int)strenghvalue;
         Main.instance.indexScreen.SetActive(false);
         Main.instance.ChallengeConfirmScreen.SetActive(true);
-        ServerManager.Instance.postData = new PostData(index.ToString(), ServerManager.Instance.playerData.metadata.arenaStateId);
 
         Main.instance.ChallengeConfirmScreen.GetComponent<ChallengeConfirmScreen>().SetChallengeData();
         Main.instance.oppoPot = pot;

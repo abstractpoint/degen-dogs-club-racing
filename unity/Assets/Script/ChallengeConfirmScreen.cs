@@ -44,28 +44,19 @@ public class ChallengeConfirmScreen : MonoBehaviour
 
     public void OnstartRace()
     {
-        resultText.gameObject.SetActive(false);
-        if (ServerManager.Instance.challengeData.challenge.result == "ARENA_CHANGED" || startRaceButtonText.text == "START RACE")
-        {
+            resultText.gameObject.SetActive(false);
             startRaceButton.interactable = false;
             startRaceButtonText.SetText("Starting challenge...");
-            ServerManager.Instance.OnLoadChallengeAPI(ServerManager.Instance.postData);
-        }
-        else
-        {
-            //Active Race Screen
-            Main.instance.ChallengeConfirmScreen.SetActive(false);
-            Main.instance.RaceScreen.SetActive(true);
-            //To set the race screen
-            Main.instance.RaceScreen.GetComponent<RaceScreen>().RaceSetup();
-        }
+            ServerManager.Instance.OnLoadChallengeAPI(
+                new PostData(
+                    Main.instance.opponent.ToString(),
+                    ServerManager.Instance.playerData.metadata.arenaStateId
+                )
+            );
     }
 
     public void OnCancel()
     {
-        //go back to the challenge screen
-        //ServerManager.Instance.OnLoadArenaData();
-
         Main.instance.ChallengeConfirmScreen.SetActive(false);
         Main.instance.indexScreen.SetActive(true);
     }
@@ -82,21 +73,27 @@ public class ChallengeConfirmScreen : MonoBehaviour
         Main.instance.oppostre = (int)(ServerManager.Instance.challengeData.arena.metadata.playerStrength * 100);
         startRaceButton.interactable = true;
         OnRefreshData();
-        if (ServerManager.Instance.challengeData.arena.players.Where(data => int.Parse(data.id) == Main.instance.opponent).Count() == 0)
+
+        if (ServerManager.Instance.challengeData.challenge.result == "ARENA_CHANGED")
         {
-            resultText.SetText("Opponent inactive!!!");
-            resultText.gameObject.SetActive(true);
-            startRaceButton.gameObject.SetActive(false);
-        }
-        else if (ServerManager.Instance.challengeData.challenge.result == "ARENA_CHANGED")
-        {
-            resultText.SetText(ServerManager.Instance.challengeData.challenge.message);
-            resultText.gameObject.SetActive(true);
-            startRaceButtonText.SetText("Continue anyway...");
+            if (ServerManager.Instance.challengeData.arena.players.Where(data => data.id == Main.instance.opponent).Count() == 0)
+            {
+                resultText.SetText("Opponent inactive!!!");
+                resultText.gameObject.SetActive(true);
+                startRaceButton.gameObject.SetActive(false);
+            } else {
+                resultText.SetText(ServerManager.Instance.challengeData.challenge.message);
+                resultText.gameObject.SetActive(true);
+                startRaceButtonText.SetText("Continue anyway...");
+            }
         }
         else
         {
-            Debug.Log("Start the game...");
+            Debug.Log("Start the race animation ...");
+            Main.instance.ChallengeConfirmScreen.SetActive(false);
+            Main.instance.RaceScreen.SetActive(true);
+            //To set the race screen
+            Main.instance.RaceScreen.GetComponent<RaceScreen>().RaceSetup();
         }
     }
 }
