@@ -90,7 +90,7 @@ abstract contract StreamInDistributeOut is SuperAppBase {
 
     /// @notice Executes dev-defined action and distributes the out-token.
     /// @dev DO NOT override this function, override `_beforeDistribution` instead.
-    function executeAction() public {
+    function executeAction() internal {
         uint256 distributionAmount = _beforeDistribution();
 
         _idaLib.distribute(_superToken, INDEX_ID, distributionAmount);
@@ -117,6 +117,15 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     /// @return distributionAmount Amount to distribute
     function _beforeDistribution() internal virtual returns (uint256 distributionAmount) {}
 
+
+    function updateSubscriptionUnits(address subscriber, uint128 units) internal {
+        _idaLib.updateSubscriptionUnits(
+            _superToken,
+            INDEX_ID,
+            subscriber,
+            units
+        );
+    }
     // ---------------------------------------------------------------------------------------------
     // SUPER APP CALLBACKS
 

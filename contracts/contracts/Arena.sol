@@ -13,6 +13,11 @@ import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/cont
 
 error Unauthorized();
 
+    struct PlayerUnitsUpdate {
+        address player;
+        uint128 units;
+    }
+
 contract Arena is StreamInDistributeOut {
     // ---------------------------------------------------------------------------------------------
     // STATE VARIABLES
@@ -47,6 +52,23 @@ contract Arena is StreamInDistributeOut {
         // Get the full balance of the underlying `_superToken` in the contract.
         distributionAmount = _superToken.balanceOf(address(this));
         // TODO: Distribute only 90% of everyone's balances leaving 10% after every distribute round
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Protected Execute Distribution function
+
+    function executeDistribution() external {
+        if (!accountList[msg.sender] && msg.sender != owner) revert Unauthorized();
+
+        executeAction();
+    }
+
+    function updatePlayerUnits(PlayerUnitsUpdate[] memory updates) external {
+        if (!accountList[msg.sender] && msg.sender != owner) revert Unauthorized();
+
+        for(uint i = 0; i < updates.length; i++){
+            updateSubscriptionUnits(updates[i].player, updates[i].units);
+        }
     }
 
     /// @notice Add account to allow list.

@@ -36,13 +36,12 @@ async function main() {
 
   const daix = await sf.loadSuperToken("fDAIx");
 
-  //call arena send lump sum method from signers[0]
   await arena
     .connect(signers[0])
-    .withdrawFunds(daix.address, ethers.utils.parseEther("500"))
+    .executeDistribution()
     .then(function (tx) {
       console.log(`
-        Congrats! You've just successfully withdrew funds from the arena contract. 
+        Congrats! You've just successfully distributed funds from the arena contract. 
         Tx Hash: ${tx.hash}
     `);
     });

@@ -19,7 +19,7 @@ async function main() {
   // await hre.run('compile');
 
   //NOTE - make sure you add the address of the previously deployed arena contract on your network
-  const arenaAddress = "0xCc47B7CAeC1C6e1eeBcB943C6a381fD29e1d7e04";
+  const arenaAddress = "0x6Cecb98b9eafFcc7c4192e8d617F3C1dE2744229";
 
   const provider = new hre.ethers.providers.JsonRpcProvider(
     process.env.GOERLI_URL

@@ -1,4 +1,5 @@
 const { expect } = require("chai");
+const { mine, time } = require("@nomicfoundation/hardhat-network-helpers");
 const { Framework } = require("@superfluid-finance/sdk-core");
 const { ethers } = require("hardhat");
 const {
@@ -179,5 +180,33 @@ describe("Arena", function () {
     expect(contractStartingBalance - ethers.utils.parseEther("10")).to.equal(
       Number(contractFinishingBalance)
     );
+  });
+  it("Owner is able to distribute", async function () {
+    let contractStartingBalance = await daix.balanceOf({
+      account: arena.address,
+      providerOrSigner: owner,
+    });
+
+    await daix
+      .createFlow({
+        receiver: arena.address,
+        flowRate: "100000000",
+      })
+      .exec(owner);
+
+    // advance time by 1 hour
+    await time.increase(3600);
+
+    await arena.executeDistribution();
+
+    // advance time by 1 minute
+    await time.increase(60);
+
+    let contractFinishingBalance = await daix.balanceOf({
+      account: arena.address,
+      providerOrSigner: owner,
+    });
+
+    expect(Number(contractFinishingBalance)).to.equal(6000000000);
   });
 });
