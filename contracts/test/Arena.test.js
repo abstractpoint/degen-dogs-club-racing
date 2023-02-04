@@ -100,18 +100,12 @@ describe("Arena", function () {
   it("Contract Receives Funds #1 - lump sum is transferred to contract", async function () {
     //transfer ownership back to real owner...
     await arena.connect(account1).changeOwner(owner.address);
-
     await daix
-      .approve({
+      .transfer({
         receiver: arena.address,
         amount: ethers.utils.parseEther("100"),
       })
       .exec(owner);
-
-    await arena.sendLumpSumToContract(
-      daix.address,
-      ethers.utils.parseEther("100")
-    );
 
     let contractDAIxBalance = await daix.balanceOf({
       account: arena.address,
@@ -120,14 +114,12 @@ describe("Arena", function () {
     expect(contractDAIxBalance, ethers.utils.parseEther("100"));
   });
   it("Contract Receives Funds #2 - a flow is created into the contract", async function () {
-    let authorizeContractOperation = daix.updateFlowOperatorPermissions({
-      flowOperator: arena.address,
-      permissions: "7", //full control
-      flowRateAllowance: "1000000000000000", // ~2500 per month
-    });
-    await authorizeContractOperation.exec(owner);
-
-    await arena.createFlowIntoContract(daix.address, "100000000000000"); //about 250 daix per month
+    await daix
+      .createFlow({
+        receiver: arena.address,
+        flowRate: "100000000000000",
+      })
+      .exec(owner);
 
     let ownerContractFlowRate = await daix.getFlow({
       sender: owner.address,
@@ -138,7 +130,12 @@ describe("Arena", function () {
     expect(ownerContractFlowRate.flowRate).to.equal("100000000000000");
   });
   it("Contract Recieves Funds #3 - a flow into the contract is updated", async function () {
-    await arena.updateFlowIntoContract(daix.address, "200000000000000"); // about 250 daix per month
+    await daix
+      .updateFlow({
+        receiver: arena.address,
+        flowRate: "200000000000000",
+      })
+      .exec(owner);
 
     let ownerContractFlowRate = await daix.getFlow({
       sender: owner.address,
@@ -160,6 +157,13 @@ describe("Arena", function () {
     expect(ownerContractFlowRate.flowRate).to.equal("0");
   });
   it("Contract sends funds #1 - withdrawing a lump sum from the contract", async function () {
+    await daix
+      .transfer({
+        receiver: arena.address,
+        amount: ethers.utils.parseEther("100"),
+      })
+      .exec(owner);
+
     let contractStartingBalance = await daix.balanceOf({
       account: arena.address,
       providerOrSigner: owner,

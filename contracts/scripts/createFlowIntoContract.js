@@ -36,14 +36,15 @@ async function main() {
 
   const daix = await sf.loadSuperToken("fDAIx");
 
-  //call arena create flow into contract method from signers[0]
-  //this flow rate is ~1000 tokens/month
-  await arena
-    .connect(signers[0])
-    .createFlowIntoContract(daix.address, "385802469135802")
+  await daix
+    .createFlow({
+      receiver: arenaAddress,
+      flowRate: "385802469135802",
+    })
+    .exec(signers[0])
     .then(function (tx) {
       console.log(`
-        Congrats! You just successfully created a flow into the arena contract. 
+        Congrats! You just successfully created a flow into the arena contract using SDK. 
         Tx Hash: ${tx.hash}
     `);
     });

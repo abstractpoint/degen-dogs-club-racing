@@ -36,8 +36,7 @@ async function main() {
 
   const daix = await sf.loadSuperToken("fDAIx");
 
-  //call arena create flow into contract method from signers[0]
-  //this flow rate is ~2000 tokens/month
+  //call arena delete flow into contract method from signers[0]
   await arena
     .connect(signers[0])
     .deleteFlowIntoContract(daix.address)
