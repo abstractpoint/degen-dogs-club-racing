@@ -26,9 +26,6 @@ public class Main : MonoBehaviour
     //list data prefab
     public GameObject playerDataPrefab;
 
-    //nft image list
-    public List<Sprite> dogimagelist;
-
     //nft images
     public Sprite playerimage, opponentimage;
 
@@ -164,7 +161,7 @@ public class Main : MonoBehaviour
         {
             GameObject chara = Instantiate(playerDataPrefab, Vector3.zero, Quaternion.identity, contentbox.transform);
             chara.GetComponent<Playermanager>().index = playersData[i].id;
-            chara.GetComponent<Playermanager>().DogImage = dogimagelist[int.Parse(playersData[i].image)];
+            chara.GetComponent<Playermanager>().DogImage = ServerManager.Instance.imageDictionary[playersData[i].image];
             chara.GetComponent<Playermanager>().power = (float)(playersData[i].flowRate * 60 * 60);//(float)Random.Range(0f, 100f);
             chara.GetComponent<Playermanager>().pot = playersData[i].balance;//Random.Range(700, 1000);
             chara.GetComponent<Playermanager>().strenghvalue = (float)playerMetadata.playerStrength * 100; //(int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);

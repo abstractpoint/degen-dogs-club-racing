@@ -52,6 +52,7 @@ export const queryArena = async () =>
             ':pk': { S: 'ARENA#CURRENT' },
         },
         KeyConditionExpression: '#pk = :pk',
+        ScanIndexForward: false,
     });
 
 export const updateArenaStateId = async (existingStateId: string, newStateId: string, timestamp: string) =>
@@ -59,7 +60,7 @@ export const updateArenaStateId = async (existingStateId: string, newStateId: st
         TableName: process.env.TABLE_NAME,
         Key: {
             pk: { S: 'ARENA#CURRENT' },
-            sk: { S: '#METADATA' },
+            sk: { S: 'METADATA' },
         },
         ConditionExpression: '#stateId = :existingStateId',
         ExpressionAttributeNames: {
@@ -106,7 +107,7 @@ export const updatePlayersAndArena = async ({
                     TableName: process.env.TABLE_NAME,
                     Key: {
                         pk: { S: 'ARENA#CURRENT' },
-                        sk: { S: '#METADATA' },
+                        sk: { S: 'METADATA' },
                     },
                     ConditionExpression: '#stateId = :existingStateId',
                     ExpressionAttributeNames: {

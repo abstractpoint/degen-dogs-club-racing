@@ -81,6 +81,8 @@ public class ServerManager : MonoBehaviour
     public PlayerData playerData; // the data from the response will be stored in this object
 
     public ChallengeData challengeData; //challange data responce
+    //nft image list
+    public Dictionary<string, Sprite> imageDictionary;
 
     #endregion
 
@@ -102,7 +104,9 @@ public class ServerManager : MonoBehaviour
 
     private IEnumerator Start()
     {
-        yield return StartCoroutine(LoadArenaData(m_BaseGetUrl));
+        imageDictionary = new Dictionary<string, Sprite>();
+        yield return LoadArenaData(m_BaseGetUrl);
+        yield return LoadImagesFromURLs();
         LoadNextScene();
     }
 
@@ -117,6 +121,36 @@ public class ServerManager : MonoBehaviour
     #endregion
 
     #region Coroutines
+    IEnumerator LoadImagesFromURLs()
+    {
+        foreach (Player player in playerData.players)
+        {
+            if (!imageDictionary.ContainsKey(player.image))
+            {
+                yield return StartCoroutine(LoadImageFromURL(player.image));
+            }
+        }
+        yield return null;
+    }
+    private IEnumerator LoadImageFromURL(string id)
+    {
+        string url = "https://api.degendogs.club/images/" + id + ".png";
+
+        UnityWebRequest webRequest = UnityWebRequestTexture.GetTexture(url);
+        yield return webRequest.SendWebRequest();
+
+        if (webRequest.result == UnityWebRequest.Result.ConnectionError ||
+            webRequest.result == UnityWebRequest.Result.ProtocolError)
+        {
+            Debug.Log(webRequest.error);
+        }
+        else
+        {
+            Texture2D texture = ((DownloadHandlerTexture)webRequest.downloadHandler).texture;
+            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            imageDictionary.Add(id, sprite);
+        }
+    }
 
     IEnumerator LoadArenaData(string uri)
     {

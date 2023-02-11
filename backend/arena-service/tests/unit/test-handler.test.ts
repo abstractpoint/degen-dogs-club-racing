@@ -14,12 +14,12 @@ describe('Service', function () {
             TableName: 'table',
             Item: marshall({
                 pk: 'ARENA#CURRENT',
-                sk: '#METADATA',
+                sk: 'METADATA',
                 stateId: '123',
             }),
         });
         const Items = await queryArena().then(({ Items }) => Items?.map((item) => unmarshall(item)));
-        expect(Items).toEqual([{ pk: 'ARENA#CURRENT', sk: '#METADATA', stateId: '123' }]);
+        expect(Items).toEqual([{ pk: 'ARENA#CURRENT', sk: 'METADATA', stateId: '123' }]);
     });
     describe('Arena handler', function () {
         it('verifies successful response', async () => {
@@ -28,7 +28,7 @@ describe('Service', function () {
                 TableName: 'table',
                 Item: marshall({
                     pk: 'ARENA#CURRENT',
-                    sk: '#METADATA',
+                    sk: 'METADATA',
                     stateId: '123',
                 }),
             });
@@ -117,7 +117,7 @@ describe('Service', function () {
                 TableName: 'table',
                 Item: marshall({
                     pk: 'ARENA#CURRENT',
-                    sk: '#METADATA',
+                    sk: 'METADATA',
                     stateId: '123',
                 }),
             });
@@ -127,7 +127,7 @@ describe('Service', function () {
                 TableName: 'table',
                 Item: marshall({
                     pk: 'ARENA#CURRENT',
-                    sk: `PLAYER#${timestamp}#f90287c238319335abe062d35a680bb5`,
+                    sk: `#PLAYER#${timestamp}#f90287c238319335abe062d35a680bb5`,
                     gs1pk: `PLAYER#f90287c238319335abe062d35a680bb5`,
                     gs1sk: `#SELF`,
                     id: 'f90287c238319335abe062d35a680bb5',
@@ -143,7 +143,7 @@ describe('Service', function () {
                 TableName: 'table',
                 Item: marshall({
                     pk: 'ARENA#CURRENT',
-                    sk: `PLAYER#${timestamp}#b613679a0814d9ec772f95d778c35fc5`,
+                    sk: `#PLAYER#${timestamp}#b613679a0814d9ec772f95d778c35fc5`,
                     gs1pk: `PLAYER#b613679a0814d9ec772f95d778c35fc5`,
                     gs1sk: `#SELF`,
                     id: 'b613679a0814d9ec772f95d778c35fc5',
@@ -209,7 +209,7 @@ describe('Service', function () {
             expect(JSON.parse(result.body)).toEqual({
                 challenge: {
                     result: 'PLAYER_LOSS',
-                    message: 'Opponent has won, you lost coins.',
+                    message: 'Opponent has won, you lost 500 coins.',
                     payload: {
                         player: 0.5,
                         opponent: 0.6,
@@ -223,16 +223,16 @@ describe('Service', function () {
                     },
                     players: [
                         {
-                            id: 'b613679a0814d9ec772f95d778c35fc5',
-                            image: expect.any(String),
-                            flowRate: 0.005,
-                            balance: 1500,
-                        },
-                        {
                             id: 'f90287c238319335abe062d35a680bb5',
                             image: expect.any(String),
                             flowRate: 0.005,
                             balance: 500,
+                        },
+                        {
+                            id: 'b613679a0814d9ec772f95d778c35fc5',
+                            image: expect.any(String),
+                            flowRate: 0.005,
+                            balance: 1500,
                         },
                     ],
                 },

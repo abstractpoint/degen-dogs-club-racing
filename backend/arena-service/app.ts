@@ -35,7 +35,7 @@ export const arenaHandler = async (event: APIGatewayProxyEvent): Promise<APIGate
         const { stateId } = Items[0];
 
         player = Items.find((item) => {
-            const [_, __, id] = item.sk.split('#');
+            const [_, __, ___, id] = item.sk.split('#');
             return id === playerId;
         });
 
@@ -43,7 +43,7 @@ export const arenaHandler = async (event: APIGatewayProxyEvent): Promise<APIGate
             const timestamp = new Date().toISOString();
             player = {
                 pk: 'ARENA#CURRENT',
-                sk: `PLAYER#${timestamp}#${playerId}`,
+                sk: `#PLAYER#${timestamp}#${playerId}`,
                 gs1pk: `PLAYER#${playerId}`,
                 gs1sk: `#SELF`,
                 id: playerId,
@@ -114,7 +114,7 @@ export const challengeHandler = async (event: APIGatewayProxyEvent): Promise<API
             throw new HttpError(400, 'Opponent does not exist');
         }
         // calculate new balances for player and opponent
-        const { playerBalance, opponentBalance } = playerOpponentBalanceMutation(player, opponent);
+        const { playerBalance, opponentBalance, coinsDifference } = playerOpponentBalanceMutation(player, opponent);
         // calculate new random strengths
         const newPlayerStrength = random();
         const newOpponentStrength = random();
@@ -140,7 +140,9 @@ export const challengeHandler = async (event: APIGatewayProxyEvent): Promise<API
             response = {
                 statusCode: 200,
                 headers: corsHeaders,
-                body: JSON.stringify(challengeResponseRace(newStateId, player, opponent, newPlayerStrength, Items!)),
+                body: JSON.stringify(
+                    challengeResponseRace(newStateId, player, opponent, coinsDifference, newPlayerStrength, Items!),
+                ),
             };
         } catch (err) {
             // arena changed response
