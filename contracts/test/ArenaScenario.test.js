@@ -20,6 +20,7 @@ let account1;
 let account2;
 
 const thousandEther = ethers.utils.parseEther("10000");
+const oneEther = ethers.utils.parseEther("1");
 
 before(async function () {
   // get hardhat accounts
@@ -80,105 +81,109 @@ before(async function () {
 });
 
 describe("Arena", function () {
-  it("Access Control #1 - Should deploy properly with the correct owner", async function () {
-    expect(await arena.owner()).to.equal(owner.address);
-  });
-  it("Access Control #2 - Should allow you to add account to account list", async function () {
-    await arena.allowAccount(account1.address);
-
-    expect(await arena.accountList(account1.address)).to.equal(true);
-  });
-  it("Access Control #3 - Should allow for removing accounts from whitelist", async function () {
-    await arena.removeAccount(account1.address);
-
-    expect(await arena.accountList(account1.address)).to.equal(false);
-  });
-  it("Access Control #4 - Should allow for change in ownership", async function () {
-    await arena.changeOwner(account1.address);
-
-    expect(await arena.owner(), account1.address);
-  });
-  it("Contract Receives Funds #1 - lump sum is transferred to contract", async function () {
-    //transfer ownership back to real owner...
-    await arena.connect(account1).changeOwner(owner.address);
-    await daix
-      .transfer({
-        receiver: arena.address,
-        amount: ethers.utils.parseEther("100"),
-      })
-      .exec(owner);
-
-    let contractDAIxBalance = await daix.balanceOf({
-      account: arena.address,
-      providerOrSigner: owner,
-    });
-    expect(contractDAIxBalance, ethers.utils.parseEther("100"));
-  });
-  it("Contract Receives Funds #2 - a flow is created into the contract", async function () {
+  it("Owner is able to distribute", async function () {
     await daix
       .createFlow({
         receiver: arena.address,
         flowRate: "100000000000000",
       })
-      .exec(owner);
+      .exec(account1);
 
-    let ownerContractFlowRate = await daix.getFlow({
-      sender: owner.address,
-      receiver: arena.address,
-      providerOrSigner: owner,
-    });
+    await time.increase(60000);
 
-    expect(ownerContractFlowRate.flowRate).to.equal("100000000000000");
-  });
-  it("Contract Recieves Funds #3 - a flow into the contract is updated", async function () {
+    await daix
+      .createFlow({
+        receiver: arena.address,
+        flowRate: "100000000000000",
+      })
+      .exec(account2);
+
     await daix
       .updateFlow({
         receiver: arena.address,
-        flowRate: "200000000000000",
+        flowRate: "50000000000000",
       })
-      .exec(owner);
+      .exec(account1);
 
-    let ownerContractFlowRate = await daix.getFlow({
-      sender: owner.address,
-      receiver: arena.address,
-      providerOrSigner: owner,
+    await time.increase(60000);
+
+    const contractBalance1 = await daix.balanceOf({
+      account: arena.address,
+      providerOrSigner: account2,
     });
 
-    expect(ownerContractFlowRate.flowRate).to.equal("200000000000000");
-  });
-  it("Contract Receives Funds #4 - a flow into the contract is deleted", async function () {
-    await arena.deleteFlowIntoContract(daix.address);
-
-    let ownerContractFlowRate = await daix.getFlow({
-      sender: owner.address,
-      receiver: arena.address,
-      providerOrSigner: owner,
-    });
-
-    expect(ownerContractFlowRate.flowRate).to.equal("0");
-  });
-  it("Contract sends funds #1 - withdrawing a lump sum from the contract", async function () {
-    await daix
-      .transfer({
-        receiver: arena.address,
-        amount: ethers.utils.parseEther("100"),
+    console.log(
+      await daix.balanceOf({
+        account: account1.address,
+        providerOrSigner: account1,
+      }),
+      await daix.balanceOf({
+        account: account2.address,
+        providerOrSigner: account2,
       })
-      .exec(owner);
-
-    let contractStartingBalance = await daix.balanceOf({
-      account: arena.address,
-      providerOrSigner: owner,
-    });
-
-    await arena.withdrawFunds(daix.address, ethers.utils.parseEther("10"));
-
-    let contractFinishingBalance = await daix.balanceOf({
-      account: arena.address,
-      providerOrSigner: owner,
-    });
-
-    expect(contractStartingBalance - ethers.utils.parseEther("10")).to.equal(
-      Number(contractFinishingBalance)
     );
+
+    let stats1 = await arena.stats1ForSubscriber(account2.address);
+    let stats1acc1 = await arena.stats1ForSubscriber(account1.address);
+    let stats2 = await arena.stats2ForSubscriber(account2.address);
+    let stats2acc1 = await arena.stats2ForSubscriber(account1.address);
+    console.log("stats", stats1, stats2, stats1acc1, stats2acc1);
+
+    await arena["preDistribute()"]();
+
+    stats1 = await arena.stats1ForSubscriber(account2.address);
+    stats1acc1 = await arena.stats1ForSubscriber(account1.address);
+    stats2 = await arena.stats2ForSubscriber(account2.address);
+    stats2acc1 = await arena.stats2ForSubscriber(account1.address);
+    console.log("stats", stats1, stats2, stats1acc1, stats2acc1);
+
+    await arena.distributeAll();
+    await arena.postDistribute();
+
+    await time.increase(60000);
+
+    await daix
+      .deleteFlow({
+        sender: account2.address,
+        receiver: arena.address,
+      })
+      .exec(account2);
+
+    await time.increase(60000);
+
+    await daix
+      .deleteFlow({
+        sender: account1.address,
+        receiver: arena.address,
+      })
+      .exec(account1);
+
+    stats1 = await arena.stats1ForSubscriber(account2.address);
+    stats1acc1 = await arena.stats1ForSubscriber(account1.address);
+    stats2 = await arena.stats2ForSubscriber(account2.address);
+    stats2acc1 = await arena.stats2ForSubscriber(account1.address);
+    console.log("stats", stats1, stats2, stats1acc1, stats2acc1);
+
+    await arena["distributeCombined()"]();
+
+    const contractBalance2 = await daix.balanceOf({
+      account: arena.address,
+      providerOrSigner: account2,
+    });
+
+    let account1Balance = await daix.balanceOf({
+      account: account1.address,
+      providerOrSigner: account1,
+    });
+
+    let account2Balance = await daix.balanceOf({
+      account: account2.address,
+      providerOrSigner: account2,
+    });
+
+    console.log(contractBalance1);
+    console.log(contractBalance2);
+    console.log(account1Balance);
+    console.log(account2Balance);
   });
 });

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+using System.Runtime.InteropServices;
 
 [Serializable]
 public class Metadata
@@ -68,6 +69,12 @@ public class PostData
 
 public class ServerManager : MonoBehaviour
 {
+    [DllImport("__Internal")]
+    private static extern string GetJWT();
+
+    //jwt for auth
+    public string jwt;
+
     #region Private_Variables
     [SerializeField]
     private string m_BaseGetUrl;
@@ -104,6 +111,15 @@ public class ServerManager : MonoBehaviour
 
     private IEnumerator Start()
     {
+        // js code to get jwt token from localstorage
+        if (Application.isEditor == true) {
+            jwt = "";
+        } else {
+            jwt = GetJWT();
+        }
+
+        Debug.Log(jwt);
+
         imageDictionary = new Dictionary<string, Sprite>();
         yield return LoadArenaData(m_BaseGetUrl);
         yield return LoadImagesFromURLs();
@@ -156,6 +172,9 @@ public class ServerManager : MonoBehaviour
     {
         using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
         {
+            if (jwt != "")
+            webRequest.SetRequestHeader("Authorization", "Bearer " + jwt);
+
             // Request and wait for the desired page.
             yield return webRequest.SendWebRequest();
 
@@ -187,6 +206,8 @@ public class ServerManager : MonoBehaviour
         var json = JsonUtility.ToJson(_jsonData);
         using (UnityWebRequest webRequest = UnityWebRequest.Put(uri, json))
         {
+            if (jwt != "")
+            webRequest.SetRequestHeader("Authorization", "Bearer " + jwt);
             // Request and wait for the desired page.
             //webRequest.uploadHandler = new UploadHandlerRaw(jsonBytes);
             webRequest.downloadHandler = new DownloadHandlerBuffer();

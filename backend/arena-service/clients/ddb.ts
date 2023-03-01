@@ -55,6 +55,21 @@ export const queryArena = async () =>
         ScanIndexForward: false,
     });
 
+export const queryLtp = async (ltp: string, ttl: number) =>
+    ddb.query({
+        TableName: process.env.TABLE_NAME,
+        ExpressionAttributeNames: {
+            '#pk': 'pk',
+            '#ttl': 'ttl',
+        },
+        ExpressionAttributeValues: {
+            ':pk': { S: `LTP#${ltp}` },
+            ':ttl': { N: `${ttl}` },
+        },
+        KeyConditionExpression: '#pk = :pk',
+        FilterExpression: '#ttl >= :ttl',
+    });
+
 export const updateArenaStateId = async (existingStateId: string, newStateId: string, timestamp: string) =>
     ddb.updateItem({
         TableName: process.env.TABLE_NAME,

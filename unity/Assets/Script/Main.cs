@@ -6,6 +6,7 @@ using TMPro;
 
 public class Main : MonoBehaviour
 {
+
     //instance
     public static Main instance;
     //panels
@@ -165,7 +166,7 @@ public class Main : MonoBehaviour
             chara.GetComponent<Playermanager>().power = (float)(playersData[i].flowRate * 60 * 60);//(float)Random.Range(0f, 100f);
             chara.GetComponent<Playermanager>().pot = playersData[i].balance;//Random.Range(700, 1000);
             chara.GetComponent<Playermanager>().strenghvalue = (float)playerMetadata.playerStrength * 100; //(int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);
-            bool isPLayAs = playerMetadata.playerId == playersData[i].id;
+            bool isPLayAs = playerMetadata.playerId == playersData[i].id || playersData[i].id == "";
             chara.GetComponent<Playermanager>().playAs = isPLayAs;
             if (isPLayAs) chara.GetComponent<Playermanager>().playasButton();
             chara.transform.GetChild(3).gameObject.SetActive(!isPLayAs);

@@ -3,9 +3,12 @@ import { arenaHandler, challengeHandler } from '../../app';
 import { ddb, queryArena } from '../../clients/ddb';
 
 const challengeInput = {
-    opponentId: 'b613679a0814d9ec772f95d778c35fc5',
+    opponentId: '1013679a0814d9ec772f95d778c35fc5',
     arenaStateId: '123',
 };
+
+const TOKEN =
+    'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyZXNzIjoiMTIzIiwidGltZXN0YW1wIjoiMjAyMy0wMi0xNVQxNzo0MTo1Ni4zNTZaIiwiaWF0IjoxNjc2NDgyOTE2fQ.__tq096LpB8kaBZoDTJla6VUcgiqVUf9wVVB-RtIb4M';
 
 describe('Service', function () {
     it('db connection works', async () => {
@@ -32,10 +35,29 @@ describe('Service', function () {
                     stateId: '123',
                 }),
             });
+            const timestamp = new Date().toISOString();
+            // create player in db
+            await ddb.putItem({
+                TableName: 'table',
+                Item: marshall({
+                    pk: 'ARENA#CURRENT',
+                    sk: `#PLAYER#${timestamp}#123`,
+                    gs1pk: `PLAYER#123`,
+                    gs1sk: `#SELF`,
+                    id: '123',
+                    image: '1',
+                    flowRate: '0000005400000000000000',
+                    balance: '1000000000000000000000',
+                    strength: 0.5,
+                    timestamp: timestamp,
+                }),
+            });
             const event = {
                 httpMethod: 'get',
                 body: '',
-                headers: {},
+                headers: {
+                    Authorization: TOKEN,
+                },
                 isBase64Encoded: false,
                 multiValueHeaders: {},
                 multiValueQueryStringParameters: {},
@@ -88,12 +110,12 @@ describe('Service', function () {
             expect(JSON.parse(result.body)).toEqual({
                 metadata: {
                     arenaStateId: '123',
-                    playerId: 'f90287c238319335abe062d35a680bb5',
+                    playerId: '123',
                     playerStrength: expect.any(Number),
                 },
                 players: [
                     {
-                        id: 'f90287c238319335abe062d35a680bb5',
+                        id: '123',
                         image: expect.any(String),
                         flowRate: 0.005,
                         balance: 1000,
@@ -127,10 +149,10 @@ describe('Service', function () {
                 TableName: 'table',
                 Item: marshall({
                     pk: 'ARENA#CURRENT',
-                    sk: `#PLAYER#${timestamp}#f90287c238319335abe062d35a680bb5`,
-                    gs1pk: `PLAYER#f90287c238319335abe062d35a680bb5`,
+                    sk: `#PLAYER#${timestamp}#123`,
+                    gs1pk: `PLAYER#123`,
                     gs1sk: `#SELF`,
-                    id: 'f90287c238319335abe062d35a680bb5',
+                    id: '123',
                     image: '1',
                     flowRate: '0000005400000000000000',
                     balance: '1000000000000000000000',
@@ -143,10 +165,10 @@ describe('Service', function () {
                 TableName: 'table',
                 Item: marshall({
                     pk: 'ARENA#CURRENT',
-                    sk: `#PLAYER#${timestamp}#b613679a0814d9ec772f95d778c35fc5`,
-                    gs1pk: `PLAYER#b613679a0814d9ec772f95d778c35fc5`,
+                    sk: `#PLAYER#${timestamp}#1013679a0814d9ec772f95d778c35fc5`,
+                    gs1pk: `PLAYER#1013679a0814d9ec772f95d778c35fc5`,
                     gs1sk: `#SELF`,
-                    id: 'b613679a0814d9ec772f95d778c35fc5',
+                    id: '1013679a0814d9ec772f95d778c35fc5',
                     image: '2',
                     flowRate: '0000005400000000000000',
                     balance: '1000000000000000000000',
@@ -157,7 +179,9 @@ describe('Service', function () {
             const event = {
                 httpMethod: 'put',
                 body: JSON.stringify(challengeInput),
-                headers: {},
+                headers: {
+                    Authorization: TOKEN,
+                },
                 isBase64Encoded: false,
                 multiValueHeaders: {},
                 multiValueQueryStringParameters: {},
@@ -218,18 +242,18 @@ describe('Service', function () {
                 arena: {
                     metadata: {
                         arenaStateId: expect.any(String),
-                        playerId: 'f90287c238319335abe062d35a680bb5',
+                        playerId: '123',
                         playerStrength: expect.any(Number),
                     },
                     players: [
                         {
-                            id: 'f90287c238319335abe062d35a680bb5',
+                            id: '123',
                             image: expect.any(String),
                             flowRate: 0.005,
                             balance: 500,
                         },
                         {
-                            id: 'b613679a0814d9ec772f95d778c35fc5',
+                            id: '1013679a0814d9ec772f95d778c35fc5',
                             image: expect.any(String),
                             flowRate: 0.005,
                             balance: 1500,

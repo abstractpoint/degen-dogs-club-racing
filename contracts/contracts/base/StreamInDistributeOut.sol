@@ -5,62 +5,46 @@ import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/c
 import {ISuperToken, ISuperfluid, SuperAppBase, SuperAppDefinitions} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 import {IInstantDistributionAgreementV1, IDAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
-// -------------------------------------------------------------------------------------------------
-// ERRORS
-
-/// @dev Thrown when the wrong token is streamed to the contract.
 error InvalidToken();
+error InvalidAgreement();
+error NotHost();
 
-/// @dev Thrown when the `msg.sender` of the app callbacks is not the Superfluid host.
-error Unauthorized();
+struct InterimAccount {
+    uint128 flowAverage;
+    uint256 timestampDelta;
+    uint128 newUnits;
+    bool newUnitsPending;
+    uint128 adjustmentUnits;
+    bool adjustmentPositive;
+    bool adjustmentPending;
+}
 
-/// @title Abstract contract to stream into and distribute out.
-/// @notice Users stream in and receive a proportional amount of shares. The shares represent a
-/// percentage of a distribution, which gets called in the `executeAction` function.
-/// @dev Inheriting contracts MUST implement `_beforeDistribution()` in inheriting contracts.
 abstract contract StreamInDistributeOut is SuperAppBase {
-    // ---------------------------------------------------------------------------------------------
-    // EVENTS
-
-    /// @dev Emits when action is successfully executed.
-    /// @param distributionAmount Amount that gets distributed to the index.
-    event ActionExecuted(uint256 distributionAmount);
-
-    /// @dev Emits when action fails in a stream termination callback AND the `amountOwed` can NOT
-    /// be transferred back to the address closing the stream.
-    /// @param amountOwed Amount owed back to the address that closed the stream.
-    event ActionFailed(uint256 amountOwed);
-
-    // ---------------------------------------------------------------------------------------------
-    // VARIABLES
-
-    /// @dev Last Distribution timestamp. Used to compute the amount owed to an address that closes
-    /// a stream but the `executeAction` call fails.
-    uint256 public lastDistribution;
-
-    /// @dev IDAv1Library for brevity.
     using IDAv1Library for IDAv1Library.InitData;
-    IDAv1Library.InitData internal _idaLib;
 
-    /// @dev Superfluid Contracts.
+    event ActionExecuted(uint256 distributionAmount);
+    event UnitsSet(uint128 distributionUnits);
+    event Log(uint i);
+    event Log2(bool i);
+
+    address[] internal _pendingActions;
+    uint256 _lastDistribution;
+    mapping(address => InterimAccount) public _interimAccounts;
+    IDAv1Library.InitData internal _idaLib;
     ISuperfluid internal immutable _host;
     IConstantFlowAgreementV1 internal immutable _cfa;
-
-    /// @dev SuperToken to stream in and out.
     ISuperToken internal immutable _superToken;
-
-
-    /// @dev Index ID for the distribution.
     uint32 internal constant INDEX_ID = 0;
 
-    // ---------------------------------------------------------------------------------------------
-    // MODIFIERS
 
-    /// @dev Checks every callback to validate inputs. MUST be called by the host.
-    /// @param token The Super Token streamed in. MUST be the in-token.
-    modifier validCallback(ISuperToken token) {
-        if (token != _superToken) revert InvalidToken();
-        if (msg.sender != address(_host)) revert Unauthorized();
+    modifier onlyHost() {
+        if (msg.sender != address(_host)) revert NotHost();
+        _;
+    }
+
+    modifier onlyExpectedTokenAgreement(ISuperToken superToken, address agreementClass) {
+        if (superToken != _superToken) revert InvalidToken();
+        if (agreementClass != address(_cfa)) revert InvalidAgreement();
         _;
     }
 
@@ -74,6 +58,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         _host = host;
         _cfa = cfa;
         _superToken = superToken;
+        // setting last distribution as contract creating time for the first time
+        _lastDistribution = block.timestamp;
 
         host.registerApp(
             SuperAppDefinitions.APP_LEVEL_FINAL |
@@ -85,30 +71,204 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         _idaLib.createIndex(superToken, INDEX_ID);
     }
 
+    function _getInterimAccount(address subscriber) internal view returns (uint128, uint256, uint128, bool, uint128, bool, bool) {
+        return (_interimAccounts[subscriber].flowAverage,
+        _interimAccounts[subscriber].timestampDelta,
+        _interimAccounts[subscriber].newUnits,
+        _interimAccounts[subscriber].newUnitsPending,
+        _interimAccounts[subscriber].adjustmentUnits,
+        _interimAccounts[subscriber].adjustmentPositive,
+        _interimAccounts[subscriber].adjustmentPending);
+    }
+
+    function _getSubscriptionUnits(address subscriber) internal view returns (uint128) {
+        ( , , uint128 idaUnits,) = _idaLib.getSubscription(
+            _superToken,
+            address(this),
+            INDEX_ID,
+            subscriber
+        );
+        return idaUnits;
+    }
+
+    function _isNotPending(address subscriber) internal view returns (bool) {
+        if (_interimAccounts[subscriber].newUnitsPending == true ||
+            _interimAccounts[subscriber].adjustmentPending == true) {
+            return false;
+        }
+        return true;
+    }
+
+    function _latestAverages(address subscriber, uint256 timestamp) internal view returns (uint128, uint256) {
+        uint128 newTimestampDelta = uint128(timestamp - _lastDistribution);
+        uint128 existingFlow;
+        InterimAccount memory currentInterimAccount;
+        currentInterimAccount = _interimAccounts[subscriber];
+        if (currentInterimAccount.flowAverage == 0) {
+            ( , , uint128 flowRate,) = _idaLib.getSubscription(
+                _superToken,
+                address(this),
+                INDEX_ID,
+                subscriber
+            );
+            existingFlow = flowRate;
+        } else {
+            existingFlow = currentInterimAccount.flowAverage;
+        }
+
+        // total of old average
+        // uint256 amountOwed = (block.timestamp - lastDistribution) * uint256(int256(flowRate));
+        uint128 timestampDelta = uint128(currentInterimAccount.timestampDelta);
+        uint128 oldSum = existingFlow * timestampDelta;
+        uint128 newSum = currentInterimAccount.newUnits * (newTimestampDelta - timestampDelta);
+        uint128 allSums = oldSum + newSum;
+        uint128 newAverageFlow = allSums / newTimestampDelta;
+        return (newAverageFlow, newTimestampDelta);
+    }
+
+
+    function _updateInterimAccount(address subscriber, int96 flowRate) internal {
+        if (_isNotPending(subscriber)) _pendingActions.push(subscriber);
+
+        (uint128 newAverageFlow, uint256 newTimestampDelta) = _latestAverages(subscriber, block.timestamp);
+
+        // adding to averages
+        _interimAccounts[subscriber].flowAverage = newAverageFlow;
+        _interimAccounts[subscriber].timestampDelta = newTimestampDelta;
+        // saving latest flowrate as new pending
+        _interimAccounts[subscriber].newUnits = uint128(int128(flowRate));
+        _interimAccounts[subscriber].newUnitsPending = true;
+    }
+
+    function _updateAdjustmentUnits(address subscriber, uint128 adjustmentUnits, bool adjustmentPositive) internal {
+        if (_isNotPending(subscriber)) _pendingActions.push(subscriber);
+
+        InterimAccount memory currentInterimAccount;
+        currentInterimAccount = _interimAccounts[subscriber];
+        _interimAccounts[subscriber].adjustmentUnits = adjustmentUnits;
+        _interimAccounts[subscriber].adjustmentPositive = adjustmentPositive;
+        _interimAccounts[subscriber].adjustmentPending = true;
+    }
+
+    function _preAction(uint256 timestamp) internal {
+        for (uint i = 0; i < _pendingActions.length; i++) {
+            address subscriber = _pendingActions[i];
+            uint128 newUnits;
+
+            InterimAccount memory currentInterimAccount;
+            currentInterimAccount = _interimAccounts[subscriber];
+
+            if (currentInterimAccount.newUnitsPending) {
+                (uint128 newAverageFlow,) = _latestAverages(subscriber, timestamp);
+                newUnits = newAverageFlow;
+                // clear the averages
+                _interimAccounts[subscriber].flowAverage = 0;
+                _interimAccounts[subscriber].timestampDelta = 0;
+                // !!! units pending is still true, as that will be set in post distribute
+            } else {
+                ( , , uint128 existingUnits,) = _idaLib.getSubscription(
+                    _superToken,
+                    address(this),
+                    INDEX_ID,
+                    subscriber
+                );
+                newUnits = existingUnits;
+            }
+
+            if (currentInterimAccount.adjustmentPending) {
+                if (currentInterimAccount.adjustmentPositive) {
+                    newUnits = newUnits + currentInterimAccount.adjustmentUnits;
+                } else {
+                    newUnits = newUnits - currentInterimAccount.adjustmentUnits;
+                }
+                // !!! adjustment pending remains true because we need to reverse the calc in post distribute
+            }
+
+            // adjust the IDA units
+            // adjust the IDA units
+            // adjust the IDA units
+            _idaLib.updateSubscriptionUnits(
+                _superToken,
+                INDEX_ID,
+                subscriber,
+                newUnits
+            );
+
+            emit UnitsSet(newUnits);
+        }
+    }
+
+
+    function _postAction() internal {
+        for (uint i = 0; i < _pendingActions.length; i++) {
+            address subscriber = _pendingActions[i];
+            uint128 newUnits;
+
+            InterimAccount memory currentInterimAccount;
+            currentInterimAccount = _interimAccounts[subscriber];
+            if (currentInterimAccount.newUnitsPending) {
+                newUnits = uint128(currentInterimAccount.newUnits);
+                // clear the new units pending
+                _interimAccounts[subscriber].newUnits = 0;
+                _interimAccounts[subscriber].newUnitsPending = false;
+            } else {
+                ( , , uint128 existingUnits,) = _idaLib.getSubscription(
+                    _superToken,
+                    address(this),
+                    INDEX_ID,
+                    subscriber
+                );
+                newUnits = existingUnits;
+            }
+
+            if (currentInterimAccount.adjustmentPending) {
+                // reverse earlier additions/subtractions
+                if (currentInterimAccount.adjustmentPositive) {
+                    newUnits = newUnits - currentInterimAccount.adjustmentUnits; // reverse
+                } else {
+                    newUnits = newUnits + currentInterimAccount.adjustmentUnits; // reverse
+                }
+                _interimAccounts[subscriber].adjustmentUnits = 0;
+                _interimAccounts[subscriber].adjustmentPositive = true;
+                _interimAccounts[subscriber].adjustmentPending = false;
+            }
+
+
+            // adjust the IDA units
+            // adjust the IDA units
+            // adjust the IDA units
+            _idaLib.updateSubscriptionUnits(
+                _superToken,
+                INDEX_ID,
+                subscriber,
+                newUnits
+            );
+
+            emit UnitsSet(newUnits);
+        }
+
+        delete _pendingActions;
+    }
+
+
     // ---------------------------------------------------------------------------------------------
     // ACTION EXECUTION
-
-    /// @notice Executes dev-defined action and distributes the out-token.
-    /// @dev DO NOT override this function, override `_beforeDistribution` instead.
-    function executeAction() internal {
+    function _executeAction() internal {
         uint256 distributionAmount = _beforeDistribution();
 
         _idaLib.distribute(_superToken, INDEX_ID, distributionAmount);
 
-        lastDistribution = block.timestamp;
+        _lastDistribution = block.timestamp;
 
         emit ActionExecuted(distributionAmount);
     }
 
-    /// @notice Executes dev-defined action and distributes the out-token in a super app callback.
-    /// @param ctx Super app callback context byte string.
-    /// @return newCtx New context returned from IDA distribution.
-    function executeActionInCallback(bytes calldata ctx) public returns (bytes memory newCtx) {
-        uint256 distributionAmount = _beforeDistribution();
+    function _executeActionExact(uint256 distributionAmount) internal {
+        _beforeDistribution();
 
-        newCtx = _idaLib.distributeWithCtx(ctx, _superToken, INDEX_ID, distributionAmount);
+        _idaLib.distribute(_superToken, INDEX_ID, distributionAmount);
 
-        lastDistribution = block.timestamp;
+        _lastDistribution = block.timestamp;
 
         emit ActionExecuted(distributionAmount);
     }
@@ -117,152 +277,69 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     /// @return distributionAmount Amount to distribute
     function _beforeDistribution() internal virtual returns (uint256 distributionAmount) {}
 
-
-    function updateSubscriptionUnits(address subscriber, uint128 units) internal {
-        _idaLib.updateSubscriptionUnits(
-            _superToken,
-            INDEX_ID,
-            subscriber,
-            units
-        );
-    }
     // ---------------------------------------------------------------------------------------------
     // SUPER APP CALLBACKS
 
-    /// @dev Callback executed AFTER a stream is CREATED.
-    /// @param token Super Token being streamed in.
-    /// @param agreementClass Agreement contract address.
-    /// @param agreementId Unique stream ID for fetching the flowRate.
-    /// @param ctx Callback context.
     function afterAgreementCreated(
-        ISuperToken token,
-        address agreementClass,
-        bytes32 agreementId,
-        bytes calldata agreementData,
-        bytes calldata,
-        bytes calldata ctx
-    ) external override validCallback(token) returns (bytes memory newCtx) {
-        // MUST NOT revert. If agreement is not explicitly CFA, return context, DO NOT update state.
-        // If this reverts, then no user can approve subscriptions.
-        if (agreementClass != address(_cfa)) return ctx;
-
-        newCtx = executeActionInCallback(ctx);
-
-        (address sender, ) = abi.decode(agreementData, (address, address));
-
-        (, int96 flowRate, , ) = _cfa.getFlowByID(token, agreementId);
-
-        return
-            _idaLib.updateSubscriptionUnitsWithCtx(
-                newCtx,
-                _superToken,
-                INDEX_ID,
-                sender,
-                uint128(int128(flowRate))
-            );
+        ISuperToken _token,
+        address _agreementClass,
+        bytes32 _agreementId, //_agreementId
+        bytes calldata _agreementData, //_agreementData
+        bytes calldata, //_cbdata
+        bytes calldata _ctx
+    )
+    external
+    override
+    onlyExpectedTokenAgreement(_token, _agreementClass)
+    onlyHost
+    returns (bytes memory newCtx)
+    {
+        newCtx = _ctx;
+        (address subscriber, ) = abi.decode(_agreementData, (address, address));
+        (, int96 flowRate, , ) = _cfa.getFlowByID(_token, _agreementId);
+        _updateInterimAccount(subscriber, flowRate);
+        return newCtx;
     }
 
-    /// @notice Callback executed AFTER a stream is UPADTED.
-    /// @param token Super Token being streamed in.
-    /// @param agreementClass Agreement contract address.
-    /// @param agreementId Unique stream ID for fetching the flowRate.
-    /// @param ctx Callback context.
-    /// @return newCtx New Callback context.
     function afterAgreementUpdated(
-        ISuperToken token,
-        address agreementClass,
-        bytes32 agreementId,
-        bytes calldata agreementData,
-        bytes calldata,
-        bytes calldata ctx
-    ) external override validCallback(token) returns (bytes memory newCtx) {
-        // MUST NOT revert. If agreement is not explicitly CFA, return context, DO NOT update state.
-        // If this reverts, then no user can approve subscriptions.
-        if (agreementClass != address(_cfa)) return ctx;
-
-        newCtx = executeActionInCallback(ctx);
-
-        (address sender, ) = abi.decode(agreementData, (address, address));
-
-        (, int96 flowRate, , ) = _cfa.getFlowByID(token, agreementId);
-
-        return
-            _idaLib.updateSubscriptionUnitsWithCtx(
-                ctx,
-                _superToken,
-                INDEX_ID,
-                sender,
-                uint128(int128(flowRate))
-            );
+        ISuperToken _token,
+        address _agreementClass,
+        bytes32 _agreementId, // _agreementId,
+        bytes calldata _agreementData, // _agreementData,
+        bytes calldata, // _cbdata,
+        bytes calldata _ctx
+    )
+    external
+    override
+    onlyExpectedTokenAgreement(_token, _agreementClass)
+    onlyHost
+    returns (bytes memory newCtx)
+    {
+        newCtx = _ctx;
+        (address subscriber, ) = abi.decode(_agreementData, (address, address));
+        (, int96 flowRate, , ) = _cfa.getFlowByID(_token, _agreementId);
+        _updateInterimAccount(subscriber, flowRate);
+        return newCtx;
     }
 
-    /// @dev Callback executed BEFORE a stream is TERMINATED.
-    /// @param token Super Token being streamed in
-    /// @param agreementId Unique stream ID for fetchign the flowRate and timestamp.
-    function beforeAgreementTerminated(
-        ISuperToken token,
-        address agreementClass,
-        bytes32 agreementId,
-        bytes calldata,
-        bytes calldata
-    ) external view override returns (bytes memory) {
-        if (agreementClass != address(_cfa)) return new bytes(0);
-
-        (uint256 timestamp, int96 flowRate, , ) = _cfa.getFlowByID(token, agreementId);
-
-        return abi.encode(timestamp, flowRate);
-    }
-
-    /// @dev Callback executed AFTER a stream is TERMINATED. This MUST NOT revert.
-    /// @param token Super Token no longer being streamed in.
-    /// @param agreementClass Agreement contract address.
-    /// @param ctx Callback context.
     function afterAgreementTerminated(
-        ISuperToken token,
-        address agreementClass,
-        bytes32,
-        bytes calldata agreementData,
-        bytes calldata cbdata,
-        bytes calldata ctx
-    ) external override validCallback(token) returns (bytes memory) {
-        // MUST NOT revert. If agreement is not explicitly CFA, return context, DO NOT update state.
-        // If this reverts, then no user can approve subscriptions.
-        if (agreementClass != address(_cfa)) return ctx;
-
-        (address sender, ) = abi.decode(agreementData, (address, address));
-
-        // Try to execute the action. On success, continue to `deleteSubscriptionWithCtx`
-        try this.executeActionInCallback(ctx) returns (bytes memory newCtx) {
-            return
-                _idaLib.deleteSubscriptionWithCtx(
-                    newCtx,
-                    _superToken,
-                    address(this),
-                    INDEX_ID,
-                    sender
-                );
-        } catch {
-            // On failure, compute the amount streamed since the last stream update OR last
-            // distribution, whichever was most recent, multiply the seconds passed by the
-            // flow rate, then transfer that amount out to the address whose stream is being closed.
-            // In the event this contract does not hold enough of the input token to refund, an
-            // `ActionFailed` event is emitted with the `amountOwed` for offchain refunding.
-
-            // Extract the last flowRate and timestamp before this closure using the `cbdata`
-            // encoded in the `beforeAgreementTerminated` callback.
-            (, int96 flowRate) = abi.decode(cbdata, (uint256, int96));
-
-            // Compute amount owed by multiplying the number of seconds passed by the flow rate.
-            uint256 amountOwed = (block.timestamp - lastDistribution) * uint256(int256(flowRate));
-
-            // If this contract has insufficient balance to refund the address whose stream is being
-            // closed, emit `ActionFailed` with the `amountOwed`.
-            if (_superToken.balanceOf(address(this)) < amountOwed) emit ActionFailed(amountOwed);
-            // Else, we transfer. There should be no case where this reverts, given the last check.
-            else _superToken.transfer(sender, amountOwed);
-
-            return
-                _idaLib.deleteSubscriptionWithCtx(ctx, _superToken, address(this), INDEX_ID, sender);
+        ISuperToken _token,
+        address _agreementClass,
+        bytes32 _agreementId, // _agreementId,
+        bytes calldata _agreementData, // _agreementData
+        bytes calldata, // _cbdata,
+        bytes calldata _ctx
+    ) external override onlyHost returns (bytes memory newCtx) {
+        // According to the app basic law, we should never revert in a termination callback
+        if (_token != _superToken || _agreementClass != address(_cfa)) {
+            return _ctx;
         }
+
+        newCtx = _ctx;
+        (address subscriber, ) = abi.decode(_agreementData, (address, address));
+        (, int96 flowRate, , ) = _cfa.getFlowByID(_token, _agreementId);
+        _updateInterimAccount(subscriber, flowRate);
+        return newCtx;
     }
+
 }

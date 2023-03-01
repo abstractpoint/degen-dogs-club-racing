@@ -58,7 +58,7 @@ export const challengeResponseRace = (
     Items: Record<string, any>[],
 ) => {
     const result = player.strength > opponent.strength ? 'PLAYER_WIN' : 'PLAYER_LOSS';
-    const coins = toDisplayNumber(coinsDifference, 0);
+    const coins = toDisplayNumber(coinsDifference, 3);
     const message =
         player.strength > opponent.strength
             ? `You have won & opponent lost ${coins} coins.`

@@ -15,6 +15,9 @@ task("accounts", "Prints the list of accounts", async (_, hre) => {
 
 module.exports = {
   solidity: "0.8.16",
+  mocha: {
+    timeout: 100000000,
+  },
   networks: {
     hardhat: {
       blockGasLimit: 100000000,

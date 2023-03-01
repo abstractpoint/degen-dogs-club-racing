@@ -10,6 +10,7 @@
     "@aws-sdk/util-dynamodb": "^3.241.0",
     "esbuild": "^0.14.14",
     "ethers": "^5.7.2",
+    "jsonwebtoken": "^9.0.0",
     "ts-custom-error": "^3.3.1"
   },
   "scripts": {
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.92",
     "@types/jest": "^27.4.0",
+    "@types/jsonwebtoken": "^9.0.1",
     "@types/node": "^17.0.13",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",

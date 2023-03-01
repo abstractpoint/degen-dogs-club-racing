@@ -12,24 +12,53 @@ import {
 import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
 error Unauthorized();
+error OutOfSequence();
 
-    struct PlayerUnitsUpdate {
-        address player;
-        uint128 units;
-    }
+struct Adjustment {
+    address subscriber;
+    uint128 adjustmentUnits;
+    bool adjustmentPositive;
+}
 
 contract Arena is StreamInDistributeOut {
-    // ---------------------------------------------------------------------------------------------
-    // STATE VARIABLES
 
-    /// @notice Owner.
-    address public owner;
-
-    /// @notice CFA Library.
     using SuperTokenV1Library for ISuperToken;
 
-    /// @notice Allow list.
+
+    address public owner;
     mapping(address => bool) public accountList;
+    bool public _preDistributeDone;
+    bool public _distributeDone;
+    bool public _postDistributeDone;
+
+    modifier onlyOwner() {
+        if (msg.sender != address(owner)) revert Unauthorized();
+        _;
+    }
+
+    modifier onlyAllowed() {
+        if (msg.sender != address(owner) && !accountList[msg.sender]) revert Unauthorized();
+        _;
+    }
+
+    modifier onlyWhenUndistributed() {
+        uint256 futureTimestamp = _lastDistribution * 14 days;
+        if (futureTimestamp > block.timestamp) revert Unauthorized();
+        _;
+    }
+
+    modifier onlyPreDistribute() {
+        if (_preDistributeDone == true || _distributeDone == true || _postDistributeDone == true) revert OutOfSequence();
+        _;
+    }
+    modifier onlyDistribute() {
+        if (_preDistributeDone == false || _distributeDone == true || _postDistributeDone == true) revert OutOfSequence();
+        _;
+    }
+    modifier onlyPostDistribute() {
+        if (_preDistributeDone == false || _distributeDone == false || _postDistributeDone == true) revert OutOfSequence();
+        _;
+    }
 
     constructor(
         ISuperfluid host,
@@ -41,75 +70,129 @@ contract Arena is StreamInDistributeOut {
         owner = _owner;
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // BEFORE DISTRIBUTION CALLBACK
+    function _resetFlags() internal {
+        _preDistributeDone = false;
+        _distributeDone = false;
+        _postDistributeDone = false;
+    }
 
-    /// @dev Before action callback. This can do calculation on a `superToken`, then returns the
-    /// amount to distribute out in the `executeAction` function.
-    /// @return distributionAmount amount to distribute after the callback.
+    // @dev Before action callback. This can do calculation on a `superToken`, then returns the
+    // amount to distribute out in the `executeAction` function.
+    // @return distributionAmount amount to distribute after the callback.
     function _beforeDistribution() internal override returns (uint256 distributionAmount) {
 
         // Get the full balance of the underlying `_superToken` in the contract.
+        // Only used by distributeAll as distributeExact accepts an amount
         distributionAmount = _superToken.balanceOf(address(this));
-        // TODO: Distribute only 90% of everyone's balances leaving 10% after every distribute round
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // Protected Execute Distribution function
 
-    function executeDistribution() external {
-        if (!accountList[msg.sender] && msg.sender != owner) revert Unauthorized();
-
-        executeAction();
+    function preDistribute() external onlyAllowed onlyPreDistribute {
+        _preAction(block.timestamp);
+        _preDistributeDone = true;
     }
 
-    function updatePlayerUnits(PlayerUnitsUpdate[] memory updates) external {
-        if (!accountList[msg.sender] && msg.sender != owner) revert Unauthorized();
+    function preDistribute(uint256 timestamp) external onlyAllowed onlyPreDistribute {
+        _preAction(timestamp);
+        _preDistributeDone = true;
+    }
 
+    function postDistribute() external onlyAllowed onlyPostDistribute {
+        _postAction();
+        _resetFlags();
+    }
+
+    function distributeAll() external onlyAllowed onlyDistribute {
+        _executeAction();
+        _distributeDone = true;
+    }
+
+    function distributeExact(uint256 distributionAmount) external onlyAllowed onlyDistribute {
+        _executeActionExact(distributionAmount);
+        _distributeDone = true;
+    }
+
+    function distributeCombined() external onlyAllowed onlyPreDistribute {
+        _preAction(block.timestamp);
+        _executeAction();
+        _postAction();
+        _resetFlags();
+    }
+
+    function distributeCombined(uint256 distributionAmount, uint256 timestamp) external onlyAllowed onlyPreDistribute {
+        _preAction(timestamp);
+        _executeActionExact(distributionAmount);
+        _postAction();
+        _resetFlags();
+    }
+
+    function publicDistribute() external onlyWhenUndistributed {
+        _preAction(block.timestamp);
+        _executeAction();
+        _postAction();
+        _resetFlags();
+    }
+
+
+    function updateAdjustmentUnits(Adjustment[] memory updates) external onlyAllowed {
         for(uint i = 0; i < updates.length; i++){
-            updateSubscriptionUnits(updates[i].player, updates[i].units);
+            _updateAdjustmentUnits(
+                updates[i].subscriber,
+                updates[i].adjustmentUnits,
+                updates[i].adjustmentPositive
+            );
         }
     }
 
-    /// @notice Add account to allow list.
-    /// @param _account Account to allow.
-    function allowAccount(address _account) external {
-        if (msg.sender != owner) revert Unauthorized();
+    function stats1ForSubscriber(address subscriber) external view returns (
+        uint128,
+        uint256,
+        uint128,
+        bool,
+        uint128,
+        bool,
+        bool
+    ) {
+        (uint128 flowAverage,
+        uint256 timestampDelta,
+        uint128 newUnits,
+        bool newUnitsPending,
+        uint128 adjustmentUnits,
+        bool adjustmentPositive,
+        bool adjustmentPending) = _getInterimAccount(subscriber);
 
+        return (flowAverage,
+            timestampDelta,
+            newUnits,
+            newUnitsPending,
+            adjustmentUnits,
+            adjustmentPositive,
+            adjustmentPending);
+    }
+
+    function stats2ForSubscriber(address subscriber) external view returns (bool,uint128) {
+                bool pendingActions = _isNotPending(subscriber) == false;
+                uint128 idaUnits = _getSubscriptionUnits(subscriber);
+        return (pendingActions, idaUnits);
+    }
+
+    function allowAccount(address _account) external onlyOwner {
         accountList[_account] = true;
     }
 
-    /// @notice Removes account from allow list.
-    /// @param _account Account to disallow.
-    function removeAccount(address _account) external {
-        if (msg.sender != owner) revert Unauthorized();
-
+    function removeAccount(address _account) external onlyOwner {
         accountList[_account] = false;
     }
 
-    /// @notice Transfer ownership.
-    /// @param _newOwner New owner account.
-    function changeOwner(address _newOwner) external {
-        if (msg.sender != owner) revert Unauthorized();
-
+    function changeOwner(address _newOwner) external onlyOwner {
         owner = _newOwner;
     }
 
-
-    /// @notice Delete a stream that the msg.sender has open into the contract.
-    /// @param token Token to quit streaming.
-    function deleteFlowIntoContract(ISuperToken token) external {
-        if (!accountList[msg.sender] && msg.sender != owner) revert Unauthorized();
-
+    function deleteFlowIntoContract(ISuperToken token) external onlyOwner onlyAllowed {
         token.deleteFlow(msg.sender, address(this));
     }
 
-    /// @notice Withdraw funds from the contract.
-    /// @param token Token to withdraw.
-    /// @param amount Amount to withdraw.
-    function withdrawFunds(ISuperToken token, uint256 amount) external {
-        if (!accountList[msg.sender] && msg.sender != owner) revert Unauthorized();
-
+    function withdrawFunds(ISuperToken token, uint256 amount) external onlyOwner {
         token.transfer(msg.sender, amount);
     }
 }
