@@ -144,6 +144,25 @@ contract Arena is StreamInDistributeOut {
         }
     }
 
+    function subscriberBalanceForTimestamp(address subscriber, uint256 timestamp) public view returns (uint128) {
+        uint128 balanceAtTimestamp;
+
+        (,,,bool newUnitsPending,,,) = _getInterimAccount(subscriber);
+
+        if (newUnitsPending) {
+            (uint128 newAverageFlow,) = _latestAverages(subscriber, timestamp);
+            balanceAtTimestamp = newAverageFlow;
+        } else {
+            balanceAtTimestamp = _getSubscriptionUnits(subscriber);
+        }
+
+        return (balanceAtTimestamp);
+    }
+
+    function subscriberBalance(address subscriber) external view returns (uint128) {
+        return subscriberBalanceForTimestamp(subscriber, block.timestamp);
+    }
+
     function stats1ForSubscriber(address subscriber) external view returns (
         uint128,
         uint256,
@@ -174,6 +193,10 @@ contract Arena is StreamInDistributeOut {
                 bool pendingActions = _isNotPending(subscriber) == false;
                 uint128 idaUnits = _getSubscriptionUnits(subscriber);
         return (pendingActions, idaUnits);
+    }
+
+    function pauseFlowCreation(bool paused) external onlyOwner {
+        _pauseFlowCreation(paused);
     }
 
     function allowAccount(address _account) external onlyOwner {

@@ -17,12 +17,12 @@ describe('Service', function () {
             TableName: 'table',
             Item: marshall({
                 pk: 'ARENA#CURRENT',
-                sk: 'METADATA',
+                sk: '#METADATA',
                 stateId: '123',
             }),
         });
         const Items = await queryArena().then(({ Items }) => Items?.map((item) => unmarshall(item)));
-        expect(Items).toEqual([{ pk: 'ARENA#CURRENT', sk: 'METADATA', stateId: '123' }]);
+        expect(Items).toEqual([{ pk: 'ARENA#CURRENT', sk: '#METADATA', stateId: '123' }]);
     });
     describe('Arena handler', function () {
         it('verifies successful response', async () => {
@@ -31,7 +31,7 @@ describe('Service', function () {
                 TableName: 'table',
                 Item: marshall({
                     pk: 'ARENA#CURRENT',
-                    sk: 'METADATA',
+                    sk: '#METADATA',
                     stateId: '123',
                 }),
             });
@@ -48,7 +48,9 @@ describe('Service', function () {
                     image: '1',
                     flowRate: '0000005400000000000000',
                     balance: '1000000000000000000000',
+                    adjustment: '0000000000000000000000',
                     strength: 0.5,
+                    inArena: true,
                     timestamp: timestamp,
                 }),
             });
@@ -130,7 +132,8 @@ describe('Service', function () {
                 async (payload) =>
                     await Promise.all(
                         payload.TransactItems!.map(async (each: any) => {
-                            await ddb.updateItem(each.Update);
+                            if (each.Update) await ddb.updateItem(each.Update);
+                            if (each.Put) await ddb.putItem(each.Put);
                         }),
                     ),
             );
@@ -139,7 +142,7 @@ describe('Service', function () {
                 TableName: 'table',
                 Item: marshall({
                     pk: 'ARENA#CURRENT',
-                    sk: 'METADATA',
+                    sk: '#METADATA',
                     stateId: '123',
                 }),
             });
@@ -156,7 +159,9 @@ describe('Service', function () {
                     image: '1',
                     flowRate: '0000005400000000000000',
                     balance: '1000000000000000000000',
+                    adjustment: '0000000000000000000000',
                     strength: 0.5,
+                    inArena: true,
                     timestamp: timestamp,
                 }),
             });
@@ -172,7 +177,9 @@ describe('Service', function () {
                     image: '2',
                     flowRate: '0000005400000000000000',
                     balance: '1000000000000000000000',
+                    adjustment: '0000000000000000000000',
                     strength: 0.6,
+                    inArena: true,
                     timestamp: timestamp,
                 }),
             });

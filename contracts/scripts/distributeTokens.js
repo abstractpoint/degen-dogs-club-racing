@@ -19,26 +19,19 @@ async function main() {
   // await hre.run('compile');
 
   //NOTE - make sure you add the address of the previously deployed arena contract on your network
-  const arenaAddress = "0x6Cecb98b9eafFcc7c4192e8d617F3C1dE2744229";
+  const arenaAddress = "0x346E44e9207715dE96fDd6c00E6E002c956Cb08F";
 
   const provider = new hre.ethers.providers.JsonRpcProvider(
-    process.env.GOERLI_URL
+    process.env.MUMBAI_URL
   );
-
-  const sf = await Framework.create({
-    chainId: (await provider.getNetwork()).chainId,
-    provider,
-  });
 
   const signers = await hre.ethers.getSigners();
 
   const arena = new ethers.Contract(arenaAddress, ArenaABI, provider);
 
-  const daix = await sf.loadSuperToken("fDAIx");
-
   await arena
     .connect(signers[0])
-    .executeDistribution()
+    ["distributeCombined()"]()
     .then(function (tx) {
       console.log(`
         Congrats! You've just successfully distributed funds from the arena contract. 

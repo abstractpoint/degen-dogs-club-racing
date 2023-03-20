@@ -1,5 +1,7 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
+import { random } from '../utils';
+import { BigNumber } from 'ethers';
 
 export const ddb = new DynamoDB({
     ...(process.env.MOCK_DYNAMODB_ENDPOINT && {
@@ -47,6 +49,22 @@ export const queryArena = async () =>
         TableName: process.env.TABLE_NAME,
         ExpressionAttributeNames: {
             '#pk': 'pk',
+            '#inArena': 'inArena',
+        },
+        FilterExpression: 'NOT #inArena = :inArena',
+        ExpressionAttributeValues: {
+            ':pk': { S: 'ARENA#CURRENT' },
+            ':inArena': { BOOL: false },
+        },
+        KeyConditionExpression: '#pk = :pk',
+        ScanIndexForward: false,
+    });
+
+export const queryArenaUnfiltered = async () =>
+    ddb.query({
+        TableName: process.env.TABLE_NAME,
+        ExpressionAttributeNames: {
+            '#pk': 'pk',
         },
         ExpressionAttributeValues: {
             ':pk': { S: 'ARENA#CURRENT' },
@@ -75,7 +93,7 @@ export const updateArenaStateId = async (existingStateId: string, newStateId: st
         TableName: process.env.TABLE_NAME,
         Key: {
             pk: { S: 'ARENA#CURRENT' },
-            sk: { S: 'METADATA' },
+            sk: { S: '#METADATA' },
         },
         ConditionExpression: '#stateId = :existingStateId',
         ExpressionAttributeNames: {
@@ -96,11 +114,10 @@ interface UpdatePlayersAndArenaParams {
     timestamp: string;
     playerSk: string;
     playerStrength: number;
-    playerBalance: string;
+    playerAdjustment: string;
     opponentSk: string;
     opponentStrength: number;
-    opponentBalance: string;
-    ttl: number;
+    opponentAdjustment: string;
 }
 
 export const updatePlayersAndArena = async ({
@@ -109,20 +126,24 @@ export const updatePlayersAndArena = async ({
     timestamp,
     playerSk,
     playerStrength,
-    playerBalance,
+    playerAdjustment,
     opponentSk,
     opponentStrength,
-    opponentBalance,
-    ttl,
-}: UpdatePlayersAndArenaParams) =>
-    ddb.transactWriteItems({
+    opponentAdjustment,
+}: UpdatePlayersAndArenaParams) => {
+    const group = new Date();
+    group.setMilliseconds(0);
+    group.setSeconds(0);
+    group.setMinutes(0);
+    group.setHours(0);
+    return ddb.transactWriteItems({
         TransactItems: [
             {
                 Update: {
                     TableName: process.env.TABLE_NAME,
                     Key: {
                         pk: { S: 'ARENA#CURRENT' },
-                        sk: { S: 'METADATA' },
+                        sk: { S: '#METADATA' },
                     },
                     ConditionExpression: '#stateId = :existingStateId',
                     ExpressionAttributeNames: {
@@ -144,17 +165,18 @@ export const updatePlayersAndArena = async ({
                         pk: { S: `ARENA#CURRENT` },
                         sk: { S: playerSk },
                     },
+                    ConditionExpression: '#inArena = :inArena',
                     ExpressionAttributeNames: {
                         '#strength': 'strength',
-                        '#balance': 'balance',
-                        '#ttl': 'ttl',
+                        '#adjustment': 'adjustment',
+                        '#inArena': 'inArena',
                     },
                     ExpressionAttributeValues: {
                         ':strength': { N: String(playerStrength) },
-                        ':balance': { S: String(playerBalance) },
-                        ':ttl': { N: String(ttl) },
+                        ':adjustment': { S: playerAdjustment },
+                        ':inArena': { BOOL: true },
                     },
-                    UpdateExpression: 'SET #strength = :strength, #balance = :balance, #ttl = :ttl',
+                    UpdateExpression: 'SET #strength = :strength, #adjustment = :adjustment',
                 },
             },
             {
@@ -164,18 +186,151 @@ export const updatePlayersAndArena = async ({
                         pk: { S: `ARENA#CURRENT` },
                         sk: { S: opponentSk },
                     },
+                    ConditionExpression: '#inArena = :inArena',
                     ExpressionAttributeNames: {
                         '#strength': 'strength',
-                        '#balance': 'balance',
-                        '#ttl': 'ttl',
+                        '#adjustment': 'adjustment',
+                        '#inArena': 'inArena',
                     },
                     ExpressionAttributeValues: {
                         ':strength': { N: String(opponentStrength) },
-                        ':balance': { S: String(opponentBalance) },
-                        ':ttl': { N: String(ttl) },
+                        ':adjustment': { S: opponentAdjustment },
+                        ':inArena': { BOOL: true },
                     },
-                    UpdateExpression: 'SET #strength = :strength, #balance = :balance, #ttl = :ttl',
+                    UpdateExpression: 'SET #strength = :strength, #adjustment = :adjustment',
+                },
+            },
+            {
+                Put: {
+                    TableName: process.env.TABLE_NAME,
+                    Item: marshall({
+                        pk: `RACES#${group.toISOString()}`,
+                        sk: `#${timestamp}${playerSk}-${opponentSk}`,
+                        gs1pk: `RACES${playerSk}-${opponentSk}`,
+                        gs1sk: `#${timestamp}`,
+                        existingStateId,
+                        newStateId,
+                        playerStrength,
+                        opponentStrength,
+                        playerAdjustment,
+                        opponentAdjustment,
+                        timestamp: timestamp,
+                    }),
                 },
             },
         ],
     });
+};
+
+interface scheduleUpdatePlayersAndArenaParams {
+    newStateId?: string;
+    timestamp: string;
+    newPlayers: any[];
+    updatedPlayers: any[];
+    allShares: BigNumber;
+    balanceUntilUpdatedAt: string;
+    totalNetFlowRate: string;
+    updatedAtTimestamp: string;
+}
+
+export const scheduleUpdatePlayersAndArena = async ({
+    newStateId,
+    timestamp,
+    newPlayers,
+    updatedPlayers,
+    allShares,
+    balanceUntilUpdatedAt,
+    totalNetFlowRate,
+    updatedAtTimestamp,
+}: scheduleUpdatePlayersAndArenaParams) => {
+    const multiplier = BigNumber.from(1e9);
+    const unixTimestampDiffBN = BigNumber.from(Math.floor(new Date().valueOf() / 1000)).sub(
+        BigNumber.from(updatedAtTimestamp),
+    );
+    const balanceUntilUpdatedAtBN = BigNumber.from(balanceUntilUpdatedAt);
+    const currentContractBalanceBN = unixTimestampDiffBN
+        .mul(BigNumber.from(totalNetFlowRate))
+        .add(balanceUntilUpdatedAtBN);
+    const transactItems = [];
+
+    console.log('currentContractBalanceBN', currentContractBalanceBN.toString());
+
+    if (newStateId) {
+        transactItems.push({
+            Update: {
+                TableName: process.env.TABLE_NAME,
+                Key: {
+                    pk: { S: 'ARENA#CURRENT' },
+                    sk: { S: '#METADATA' },
+                },
+                ExpressionAttributeNames: {
+                    '#stateId': 'stateId',
+                    '#timestamp': 'timestamp',
+                },
+                ExpressionAttributeValues: {
+                    ':stateId': { S: newStateId },
+                    ':timestamp': { S: timestamp },
+                },
+                UpdateExpression: 'SET #stateId = :stateId, #timestamp = :timestamp',
+            },
+        });
+    }
+    newPlayers.forEach((inflow) => {
+        transactItems.push({
+            Put: {
+                TableName: process.env.TABLE_NAME,
+                Item: marshall({
+                    pk: 'ARENA#CURRENT',
+                    sk: `#PLAYER#${timestamp}#${inflow.sender}`,
+                    gs1pk: `PLAYER#${inflow.sender}`,
+                    gs1sk: `#SELF`,
+                    id: inflow.sender,
+                    image: inflow.nftId,
+                    flowRate: inflow.currentFlowRate,
+                    balance: currentContractBalanceBN
+                        .div(allShares.mul(multiplier).div(BigNumber.from(inflow.balanceShares)))
+                        .mul(multiplier)
+                        .toString(),
+                    adjustment: '0',
+                    strength: random(),
+                    timestamp: timestamp,
+                    inArena: inflow.inArena,
+                }),
+            },
+        });
+    });
+    updatedPlayers.forEach((inflow) => {
+        transactItems.push({
+            Update: {
+                TableName: process.env.TABLE_NAME,
+                Key: {
+                    pk: { S: `ARENA#CURRENT` },
+                    sk: { S: inflow.playerSk },
+                },
+                ExpressionAttributeNames: {
+                    '#flowRate': 'flowRate',
+                    '#balance': 'balance',
+                    '#inArena': 'inArena',
+                },
+                ExpressionAttributeValues: {
+                    ':flowRate': { S: inflow.currentFlowRate },
+                    ':balance': {
+                        S: currentContractBalanceBN
+                            .div(allShares.mul(multiplier).div(BigNumber.from(inflow.balanceShares)))
+                            .mul(multiplier)
+                            .toString(),
+                    },
+                    ':inArena': { BOOL: inflow.inArena },
+                },
+                UpdateExpression: 'SET #flowRate = :flowRate, #balance = :balance, #inArena = :inArena',
+            },
+        });
+    });
+    if (transactItems.length > 0) {
+        return ddb.transactWriteItems({
+            TransactItems: transactItems,
+        });
+    } else {
+        return Promise.resolve();
+    }
+};

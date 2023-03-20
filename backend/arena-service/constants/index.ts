@@ -1,12 +1,21 @@
 import { toDisplayNumber } from '../utils';
 import { BigNumber } from 'ethers';
 
+export const directory = {
+    dog: '0xA920464B46548930bEfECcA5467860B2b4C2B5b9',
+    arena: '0x346e44e9207715de96fdd6c00e6e002c956cb08f',
+    superToken: '0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f',
+};
+
 export const arenaResponse = (stateId: string, player: Record<string, any>, Items: Record<string, any>[]) => {
     const players = Items.filter((item) => item.sk.startsWith('#PLAYER#')).map((eachPlayer) => ({
         id: eachPlayer.id,
         image: eachPlayer.image,
-        flowRate: toDisplayNumber(eachPlayer.flowRate, 3),
-        balance: toDisplayNumber(eachPlayer.balance, 0),
+        flowRate: toDisplayNumber(eachPlayer.flowRate, 9),
+        balance: toDisplayNumber(
+            BigNumber.from(eachPlayer.balance).add(BigNumber.from(eachPlayer.adjustment)).toString(),
+            1,
+        ),
     }));
     return {
         metadata: {
@@ -21,17 +30,19 @@ export const arenaResponse = (stateId: string, player: Record<string, any>, Item
 export const playerOpponentBalanceMutation = (player: Record<string, any>, opponent: Record<string, any>) => {
     let playerBalanceBN;
     let opponentBalanceBN;
+    const playerTotalBN = BigNumber.from(player.balance).add(BigNumber.from(player.adjustment));
+    const opponentTotalBN = BigNumber.from(opponent.balance).add(BigNumber.from(opponent.adjustment));
     if (player.strength > opponent.strength) {
-        playerBalanceBN = BigNumber.from(opponent.balance).div('2').add(player.balance);
-        opponentBalanceBN = BigNumber.from(opponent.balance).div('2');
+        playerBalanceBN = playerTotalBN.add(opponentTotalBN.div('2'));
+        opponentBalanceBN = playerTotalBN.div('2');
     } else {
-        playerBalanceBN = BigNumber.from(player.balance).div('2');
-        opponentBalanceBN = BigNumber.from(player.balance).div('2').add(opponent.balance);
+        playerBalanceBN = playerTotalBN.div('2');
+        opponentBalanceBN = opponentTotalBN.add(playerTotalBN.div('2'));
     }
-    const coinsDifferenceBN = BigNumber.from(player.balance).sub(playerBalanceBN).abs();
+    const coinsDifferenceBN = playerTotalBN.sub(playerBalanceBN).abs();
     return {
-        playerBalance: playerBalanceBN.toString(),
-        opponentBalance: opponentBalanceBN.toString(),
+        playerAdjustment: playerBalanceBN.sub(BigNumber.from(player.balance)).toString(),
+        opponentAdjustment: opponentBalanceBN.sub(BigNumber.from(opponent.balance)).toString(),
         coinsDifference: coinsDifferenceBN.toString(),
     };
 };
@@ -74,4 +85,10 @@ export const challengeResponseRace = (
         },
         arena: arenaResponse(stateId, { id: player.id, strength: newPlayerStrength }, Items),
     };
+};
+
+export const apiUrls = {
+    mumbai: {
+        graph: 'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai',
+    },
 };

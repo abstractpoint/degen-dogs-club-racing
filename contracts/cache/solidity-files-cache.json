@@ -1,6 +1,235 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
+    "/Users/temp/Repositories/2022/arena-infra/contracts/contracts/Arena.sol": {
+      "lastModificationDate": 1678744383070,
+      "contentHash": "4c9da39adcdaa99ec68de7debaa955cc",
+      "sourceName": "contracts/Arena.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./base/StreamInDistributeOut.sol",
+        "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.16"
+      ],
+      "artifacts": [
+        "Arena"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/contracts/base/StreamInDistributeOut.sol": {
+      "lastModificationDate": 1678781639052,
+      "contentHash": "f2c960148da237e95eac15eee43d90ab",
+      "sourceName": "contracts/base/StreamInDistributeOut.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol",
+        "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol",
+        "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.16"
+      ],
+      "artifacts": [
+        "StreamInDistributeOut"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol": {
+      "lastModificationDate": 1675405316351,
+      "contentHash": "e085b997d367140ccf777fbec59bc9ea",
+      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/superfluid/ISuperfluid.sol",
+        "../interfaces/agreements/IConstantFlowAgreementV1.sol",
+        "../interfaces/agreements/IInstantDistributionAgreementV1.sol"
+      ],
+      "versionPragmas": [
+        ">= 0.8.0"
+      ],
+      "artifacts": [
+        "SuperTokenV1Library"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol": {
+      "lastModificationDate": 1675405316310,
+      "contentHash": "4ad2109d5a8003eca4b9a792c863bc87",
+      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/superfluid/ISuperfluid.sol"
+      ],
+      "versionPragmas": [
+        ">= 0.8.0"
+      ],
+      "artifacts": [
+        "SuperAppBase"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol": {
+      "lastModificationDate": 1675405316129,
+      "contentHash": "ac620fa3113afdb0a84b62b5b28a8e26",
+      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/superfluid/ISuperfluid.sol",
+        "../interfaces/agreements/IInstantDistributionAgreementV1.sol"
+      ],
+      "versionPragmas": [
+        ">= 0.8.0"
+      ],
+      "artifacts": [
+        "IDAv1Library"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol": {
+      "lastModificationDate": 1675405316127,
+      "contentHash": "cea469dcdeaa6e0992d7beea10698a81",
+      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../superfluid/ISuperAgreement.sol",
+        "../superfluid/ISuperfluidToken.sol"
+      ],
+      "versionPragmas": [
+        ">= 0.8.4"
+      ],
+      "artifacts": [
+        "IConstantFlowAgreementV1"
+      ]
+    },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol": {
       "lastModificationDate": 1675405316278,
       "contentHash": "923d8bee2334395f7ad909b8e98e07e9",
@@ -47,85 +276,6 @@
         "ISuperfluid"
       ]
     },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol": {
-      "lastModificationDate": 1675405316351,
-      "contentHash": "e085b997d367140ccf777fbec59bc9ea",
-      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../interfaces/superfluid/ISuperfluid.sol",
-        "../interfaces/agreements/IConstantFlowAgreementV1.sol",
-        "../interfaces/agreements/IInstantDistributionAgreementV1.sol"
-      ],
-      "versionPragmas": [
-        ">= 0.8.0"
-      ],
-      "artifacts": [
-        "SuperTokenV1Library"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidGovernance.sol": {
-      "lastModificationDate": 1675405316279,
-      "contentHash": "f39a1c0568c38958f3c5c80b6fb1603c",
-      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidGovernance.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./ISuperAgreement.sol",
-        "./ISuperToken.sol",
-        "./ISuperfluidToken.sol",
-        "./ISuperfluid.sol"
-      ],
-      "versionPragmas": [
-        ">= 0.8.4"
-      ],
-      "artifacts": [
-        "ISuperfluidGovernance"
-      ]
-    },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol": {
       "lastModificationDate": 1675405316279,
       "contentHash": "095cd6cdf7df13a739649f8917862cb0",
@@ -161,6 +311,148 @@
       ],
       "artifacts": [
         "ISuperfluidToken"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperAgreement.sol": {
+      "lastModificationDate": 1675405316265,
+      "contentHash": "49d978f06d4edeb5125a7152d6897e69",
+      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperAgreement.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./ISuperfluidToken.sol"
+      ],
+      "versionPragmas": [
+        ">= 0.8.4"
+      ],
+      "artifacts": [
+        "ISuperAgreement"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/TokenInfo.sol": {
+      "lastModificationDate": 1675405316362,
+      "contentHash": "6326411b7eb3d451fdffd149d821a7cb",
+      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/TokenInfo.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">= 0.8.4"
+      ],
+      "artifacts": [
+        "TokenInfo"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/token/ERC777/IERC777.sol": {
+      "lastModificationDate": 1675405286566,
+      "contentHash": "35b56a00de0fb16f9e6a8d7464d31b0b",
+      "sourceName": "@openzeppelin/contracts/token/ERC777/IERC777.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC777"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+      "lastModificationDate": 1675405285744,
+      "contentHash": "ad7c2d0af148c8f9f097d65deeb4da6b",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC20"
       ]
     },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol": {
@@ -199,41 +491,6 @@
       ],
       "artifacts": [
         "ISuperTokenFactory"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/TokenInfo.sol": {
-      "lastModificationDate": 1675405316362,
-      "contentHash": "6326411b7eb3d451fdffd149d821a7cb",
-      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/TokenInfo.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">= 0.8.4"
-      ],
-      "artifacts": [
-        "TokenInfo"
       ]
     },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol": {
@@ -275,6 +532,46 @@
       ],
       "artifacts": [
         "ISuperToken"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidGovernance.sol": {
+      "lastModificationDate": 1675405316279,
+      "contentHash": "f39a1c0568c38958f3c5c80b6fb1603c",
+      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidGovernance.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./ISuperAgreement.sol",
+        "./ISuperToken.sol",
+        "./ISuperfluidToken.sol",
+        "./ISuperfluid.sol"
+      ],
+      "versionPragmas": [
+        ">= 0.8.4"
+      ],
+      "artifacts": [
+        "ISuperfluidGovernance"
       ]
     },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperApp.sol": {
@@ -353,113 +650,6 @@
         "SuperfluidGovernanceConfigs"
       ]
     },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperAgreement.sol": {
-      "lastModificationDate": 1675405316265,
-      "contentHash": "49d978f06d4edeb5125a7152d6897e69",
-      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperAgreement.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./ISuperfluidToken.sol"
-      ],
-      "versionPragmas": [
-        ">= 0.8.4"
-      ],
-      "artifacts": [
-        "ISuperAgreement"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/token/ERC777/IERC777.sol": {
-      "lastModificationDate": 1675405286566,
-      "contentHash": "35b56a00de0fb16f9e6a8d7464d31b0b",
-      "sourceName": "@openzeppelin/contracts/token/ERC777/IERC777.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "IERC777"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
-      "lastModificationDate": 1675405285744,
-      "contentHash": "ad7c2d0af148c8f9f097d65deeb4da6b",
-      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "IERC20"
-      ]
-    },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/ERC20WithTokenInfo.sol": {
       "lastModificationDate": 1675405316108,
       "contentHash": "77968d7579793b9f87e33dec4d917f44",
@@ -534,196 +724,6 @@
       ],
       "artifacts": [
         "IInstantDistributionAgreementV1"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol": {
-      "lastModificationDate": 1675405316127,
-      "contentHash": "cea469dcdeaa6e0992d7beea10698a81",
-      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../superfluid/ISuperAgreement.sol",
-        "../superfluid/ISuperfluidToken.sol"
-      ],
-      "versionPragmas": [
-        ">= 0.8.4"
-      ],
-      "artifacts": [
-        "IConstantFlowAgreementV1"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/contracts/Arena.sol": {
-      "lastModificationDate": 1677690124330,
-      "contentHash": "ca537fa69a59a6f0e922565319beeb9b",
-      "sourceName": "contracts/Arena.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./base/StreamInDistributeOut.sol",
-        "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.16"
-      ],
-      "artifacts": [
-        "Arena"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/contracts/base/StreamInDistributeOut.sol": {
-      "lastModificationDate": 1677700244046,
-      "contentHash": "411fd589a93604abf71b0763a3aa256c",
-      "sourceName": "contracts/base/StreamInDistributeOut.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol",
-        "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol",
-        "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.16"
-      ],
-      "artifacts": [
-        "StreamInDistributeOut"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol": {
-      "lastModificationDate": 1675405316310,
-      "contentHash": "4ad2109d5a8003eca4b9a792c863bc87",
-      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../interfaces/superfluid/ISuperfluid.sol"
-      ],
-      "versionPragmas": [
-        ">= 0.8.0"
-      ],
-      "artifacts": [
-        "SuperAppBase"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol": {
-      "lastModificationDate": 1675405316129,
-      "contentHash": "ac620fa3113afdb0a84b62b5b28a8e26",
-      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../interfaces/superfluid/ISuperfluid.sol",
-        "../interfaces/agreements/IInstantDistributionAgreementV1.sol"
-      ],
-      "versionPragmas": [
-        ">= 0.8.0"
-      ],
-      "artifacts": [
-        "IDAv1Library"
       ]
     },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/agreements/AgreementLibrary.sol": {
@@ -955,41 +955,6 @@
         "UUPSProxiable"
       ]
     },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/upgradability/UUPSUtils.sol": {
-      "lastModificationDate": 1675405316365,
-      "contentHash": "6d19c49baab60556bee9564fae70c64e",
-      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/upgradability/UUPSUtils.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "0.8.16"
-      ],
-      "artifacts": [
-        "UUPSUtils"
-      ]
-    },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/proxy/utils/Initializable.sol": {
       "lastModificationDate": 1675405287234,
       "contentHash": "a8db4cae435200b0e429619c853df716",
@@ -1025,6 +990,41 @@
       ],
       "artifacts": [
         "Initializable"
+      ]
+    },
+    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@superfluid-finance/ethereum-contracts/contracts/upgradability/UUPSUtils.sol": {
+      "lastModificationDate": 1675405316365,
+      "contentHash": "6d19c49baab60556bee9564fae70c64e",
+      "sourceName": "@superfluid-finance/ethereum-contracts/contracts/upgradability/UUPSUtils.sol",
+      "solcConfig": {
+        "version": "0.8.16",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.16"
+      ],
+      "artifacts": [
+        "UUPSUtils"
       ]
     },
     "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/utils/Address.sol": {
@@ -1096,222 +1096,6 @@
         "^0.8.16"
       ],
       "artifacts": []
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
-      "lastModificationDate": 1675405285914,
-      "contentHash": "909ab67fc5c25033fe6cd364f8c056f9",
-      "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../IERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "IERC20Metadata"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
-      "lastModificationDate": 1675405281228,
-      "contentHash": "834a0dde221759af42b030253315b086",
-      "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./IERC20.sol",
-        "./extensions/IERC20Metadata.sol",
-        "../../utils/Context.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "ERC20"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1675405277798,
-      "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
-      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "Context"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol": {
-      "lastModificationDate": 1675405279614,
-      "contentHash": "6116ca703456923afc88ce24b466ac80",
-      "sourceName": "@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "EnumerableSet"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol": {
-      "lastModificationDate": 1675405288421,
-      "contentHash": "2337f0279507b5edf14a07067adf0d05",
-      "sourceName": "@openzeppelin/contracts/utils/math/SafeMath.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "SafeMath"
-      ]
-    },
-    "/Users/temp/Repositories/2022/arena-infra/contracts/node_modules/hardhat/console.sol": {
-      "lastModificationDate": 1675405297176,
-      "contentHash": "4ff3cd2f6272c9a6516e9ee4f2b967d3",
-      "sourceName": "hardhat/console.sol",
-      "solcConfig": {
-        "version": "0.8.16",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">= 0.4.22 <0.9.0"
-      ],
-      "artifacts": [
-        "console"
-      ]
     }
   }
 }

@@ -8,6 +8,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.241.0",
     "@aws-sdk/util-dynamodb": "^3.241.0",
+    "axios": "^0.27.2",
     "esbuild": "^0.14.14",
     "ethers": "^5.7.2",
     "jsonwebtoken": "^9.0.0",

@@ -15,7 +15,7 @@ async function main() {
   // await hre.run('compile');
 
   const provider = new hre.ethers.providers.JsonRpcProvider(
-    process.env.GOERLI_URL
+    process.env.MUMBAI_URL
   );
 
   const sf = await Framework.create({
@@ -28,9 +28,19 @@ async function main() {
   const daix = await sf.loadSuperToken("fDAIx");
 
   const signers = await hre.ethers.getSigners();
+  console.log("Account balance:", (await signers[0].getBalance()).toString());
   // We get the contract to deploy
   const Arena = await hre.ethers.getContractFactory("Arena");
   //deploy the arena account using the proper host address and the address of the first signer
+
+  console.log(
+    sf.settings.config.hostAddress,
+    sf.settings.config.cfaV1Address,
+    sf.settings.config.idaV1Address,
+    daix.address,
+    signers[0].address
+  );
+
   const arena = await Arena.deploy(
     sf.settings.config.hostAddress,
     sf.settings.config.cfaV1Address,

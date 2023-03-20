@@ -75,7 +75,7 @@ describe('Auth Handler Service', function () {
             Item: marshall({
                 pk: 'LTP#test-test-test',
                 sk: '#SELF',
-                address: '123',
+                address: '0x104D64F611aaA3F06F417F8D44F85A76FB44FbE9',
                 ltp: 'test-test-test',
                 timestamp,
                 ttl: ttl,

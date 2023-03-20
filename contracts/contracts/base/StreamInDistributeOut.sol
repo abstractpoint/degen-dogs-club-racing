@@ -6,8 +6,8 @@ import {ISuperToken, ISuperfluid, SuperAppBase, SuperAppDefinitions} from "@supe
 import {IInstantDistributionAgreementV1, IDAv1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
 error InvalidToken();
-error InvalidAgreement();
 error NotHost();
+error TemporarilyUnavailable();
 
 struct InterimAccount {
     uint128 flowAverage;
@@ -35,6 +35,7 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     IConstantFlowAgreementV1 internal immutable _cfa;
     ISuperToken internal immutable _superToken;
     uint32 internal constant INDEX_ID = 0;
+    bool public _pausedFlowCreation;
 
 
     modifier onlyHost() {
@@ -42,9 +43,13 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         _;
     }
 
-    modifier onlyExpectedTokenAgreement(ISuperToken superToken, address agreementClass) {
+    modifier onlyExpectedToken(ISuperToken superToken) {
         if (superToken != _superToken) revert InvalidToken();
-        if (agreementClass != address(_cfa)) revert InvalidAgreement();
+        _;
+    }
+
+    modifier onlyWhenUnpaused() {
+        if (_pausedFlowCreation) revert TemporarilyUnavailable();
         _;
     }
 
@@ -60,6 +65,7 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         _superToken = superToken;
         // setting last distribution as contract creating time for the first time
         _lastDistribution = block.timestamp;
+        _pausedFlowCreation = false;
 
         host.registerApp(
             SuperAppDefinitions.APP_LEVEL_FINAL |
@@ -69,6 +75,10 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         );
 
         _idaLib.createIndex(superToken, INDEX_ID);
+    }
+
+    function _pauseFlowCreation(bool paused) internal {
+        _pausedFlowCreation = paused;
     }
 
     function _getInterimAccount(address subscriber) internal view returns (uint128, uint256, uint128, bool, uint128, bool, bool) {
@@ -290,10 +300,14 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     )
     external
     override
-    onlyExpectedTokenAgreement(_token, _agreementClass)
+    onlyExpectedToken(_token)
     onlyHost
+    onlyWhenUnpaused
     returns (bytes memory newCtx)
     {
+        if (_agreementClass != address(_cfa)) {
+            return _ctx;
+        }
         newCtx = _ctx;
         (address subscriber, ) = abi.decode(_agreementData, (address, address));
         (, int96 flowRate, , ) = _cfa.getFlowByID(_token, _agreementId);
@@ -311,10 +325,13 @@ abstract contract StreamInDistributeOut is SuperAppBase {
     )
     external
     override
-    onlyExpectedTokenAgreement(_token, _agreementClass)
+    onlyExpectedToken(_token)
     onlyHost
     returns (bytes memory newCtx)
     {
+        if (_agreementClass != address(_cfa)) {
+            return _ctx;
+        }
         newCtx = _ctx;
         (address subscriber, ) = abi.decode(_agreementData, (address, address));
         (, int96 flowRate, , ) = _cfa.getFlowByID(_token, _agreementId);

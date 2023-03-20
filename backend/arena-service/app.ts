@@ -1,9 +1,26 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, ScheduledEvent } from 'aws-lambda';
 import { customErrorFactory } from 'ts-custom-error';
-import { arenaResponse, challengeResponse, challengeResponseRace, playerOpponentBalanceMutation } from './constants';
+import { BigNumber } from 'ethers';
+import {
+    arenaResponse,
+    challengeResponse,
+    challengeResponseRace,
+    playerOpponentBalanceMutation,
+    directory,
+} from './constants';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
-import { putItem, queryArena, updatePlayersAndArena, queryPlayer, queryLtp } from './clients/ddb';
-import { uuid, random, saltedHash, recoverAddressFromSignature, createLTP } from './utils';
+import {
+    putItem,
+    queryArena,
+    updatePlayersAndArena,
+    queryPlayer,
+    queryLtp,
+    scheduleUpdatePlayersAndArena,
+    queryArenaUnfiltered,
+} from './clients/ddb';
+import { accountTokenSnapshot } from './clients/graph';
+import { getNFTId, getSubscriberBalance } from './clients/ethereum';
+import { uuid, random, saltedHash, recoverAddressFromSignature, createLTP, toDisplayNumber } from './utils';
 import { createToken, verifyToken } from './utils/auth';
 
 const HttpError = customErrorFactory(function HttpError(code: number, message = '') {
@@ -30,7 +47,7 @@ export const arenaHandler = async (event: APIGatewayProxyEvent): Promise<APIGate
             throw new Error('Unable to retrieve current arena');
         }
 
-        const { stateId } = Items[0];
+        const { stateId } = Items[Items.length - 1];
 
         if (authHeader) {
             const [_, jwt] = authHeader?.split(' ');
@@ -81,7 +98,7 @@ export const challengeHandler = async (event: APIGatewayProxyEvent): Promise<API
             throw new Error('Unable to retrieve current arena');
         }
 
-        const { stateId } = Items[0];
+        const { stateId } = Items[Items.length - 1];
 
         const body = JSON.parse(event.body as string);
         if (!body.opponentId || !body.arenaStateId) {
@@ -111,11 +128,13 @@ export const challengeHandler = async (event: APIGatewayProxyEvent): Promise<API
             throw new HttpError(400, 'Opponent does not exist');
         }
         // calculate new balances for player and opponent
-        const { playerBalance, opponentBalance, coinsDifference } = playerOpponentBalanceMutation(player, opponent);
+        const { playerAdjustment, opponentAdjustment, coinsDifference } = playerOpponentBalanceMutation(
+            player,
+            opponent,
+        );
         // calculate new random strengths
         const newPlayerStrength = random();
         const newOpponentStrength = random();
-        const ttl = Math.floor(new Date().valueOf() / 1000) + 604800; // 7 days in seconds
         const newStateId = uuid();
         const timestamp = new Date().toISOString();
         try {
@@ -125,11 +144,10 @@ export const challengeHandler = async (event: APIGatewayProxyEvent): Promise<API
                 timestamp,
                 playerSk: player.sk,
                 opponentSk: opponent.sk,
-                playerBalance,
-                opponentBalance,
+                playerAdjustment,
+                opponentAdjustment,
                 playerStrength: newPlayerStrength,
                 opponentStrength: newOpponentStrength,
-                ttl,
             }).catch((err) => {
                 throw new HttpError(501, err);
             });
@@ -142,6 +160,7 @@ export const challengeHandler = async (event: APIGatewayProxyEvent): Promise<API
                 ),
             };
         } catch (err) {
+            console.log(err);
             // arena changed response
             response = {
                 statusCode: 200,
@@ -202,31 +221,10 @@ export const authHandler = async (event: APIGatewayProxyEvent): Promise<APIGatew
             if (!ltpItem) {
                 throw new HttpError(400, 'Invalid or expired LTP');
             }
-
-            // TODO: verify address and image id
+            const playerAddress = ltpItem.address.toLowerCase();
 
             const timestamp = new Date().toISOString();
-            jwt = createToken({ address: ltpItem.address, timestamp });
-
-            // check that the player is streaming, and create player
-
-            // const timestamp = new Date().toISOString();
-            // player = {
-            //     pk: 'ARENA#CURRENT',
-            //     sk: `#PLAYER#${timestamp}#${playerId}`,
-            //     gs1pk: `PLAYER#${playerId}`,
-            //     gs1sk: `#SELF`,
-            //     id: playerId,
-            //     image: String(Math.ceil(random() * 100)), // random image from 1 - 100
-            //     flowRate: '0000005400000000000000',
-            //     balance: '1000000000000000000000',
-            //     strength: random(),
-            //     timestamp: timestamp,
-            // };
-            // // TODO: change to use update item to avoid having to retrieve again
-            // // TODO: Make a separate Join endpoint that accepts signature to auth and create player
-            // await putItem(player);
-            // Items = await queryArena().then(({ Items }) => Items?.map((item) => unmarshall(item)));
+            jwt = createToken({ address: playerAddress, timestamp });
         }
 
         response = {
@@ -249,4 +247,103 @@ export const authHandler = async (event: APIGatewayProxyEvent): Promise<APIGatew
     }
 
     return response;
+};
+
+export const scheduleHandler = async (event: ScheduledEvent): Promise<undefined> => {
+    const { snapshot, inflows } = await accountTokenSnapshot(directory.arena, directory.superToken);
+    console.log(snapshot, inflows);
+    let Items;
+
+    try {
+        Items = await queryArenaUnfiltered().then(({ Items }) => Items?.map((item) => unmarshall(item)));
+
+        if (!Items) {
+            throw new Error('Unable to retrieve current arena');
+        }
+    } catch (e) {
+        console.log(e);
+    }
+
+    const playersInDb = Items?.filter((item) => item.sk.startsWith('#PLAYER#'));
+
+    const newPlayers = [];
+    const updatedPlayers = [];
+    let allShares = BigNumber.from('0');
+    let arenaStateIdChanged = false;
+    for (const inflow of inflows) {
+        const subscriberBalanceShares = await getSubscriberBalance(inflow.sender);
+        allShares = allShares.add(BigNumber.from(subscriberBalanceShares));
+
+        try {
+            const nftId = await getNFTId(inflow.sender, directory.dog, '0');
+            const existingPlayer = playersInDb?.find((each) => each.id === inflow.sender);
+
+            if (!existingPlayer && nftId && inflow.currentFlowRate !== '0') {
+                // TODO: Add check for duplicate NFT ids to avoid someone moving the token between wallets
+                newPlayers.push({
+                    ...inflow,
+                    balanceShares: subscriberBalanceShares,
+                    inArena: true,
+                    nftId,
+                });
+                arenaStateIdChanged = true;
+                continue;
+            }
+
+            if (nftId && inflow.currentFlowRate !== '0') {
+                updatedPlayers.push({
+                    ...inflow,
+                    playerSk: existingPlayer?.sk,
+                    balanceShares: subscriberBalanceShares,
+                    inArena: true,
+                });
+                // arenaStateIdChanged remains false
+                continue;
+            }
+
+            if (!nftId || inflow.currentFlowRate === '0') {
+                updatedPlayers.push({
+                    ...inflow,
+                    playerSk: existingPlayer?.sk,
+                    balanceShares: subscriberBalanceShares,
+                    inArena: false,
+                });
+                arenaStateIdChanged = true;
+                continue;
+            }
+        } catch (e) {}
+    }
+
+    console.log('allShares', allShares.toString());
+
+    // take the inflows in the arrays and create a bulk update of players
+    // balance calculation
+    // update arena state id if players not in arena anymore
+
+    const timestamp = new Date().toISOString();
+
+    await scheduleUpdatePlayersAndArena({
+        newStateId: arenaStateIdChanged ? uuid() : undefined,
+        timestamp,
+        newPlayers,
+        updatedPlayers,
+        allShares,
+        balanceUntilUpdatedAt: snapshot.balanceUntilUpdatedAt,
+        totalNetFlowRate: snapshot.totalNetFlowRate,
+        updatedAtTimestamp: snapshot.updatedAtTimestamp,
+    });
+
+    // TODO: items below for distribute
+
+    //// if end of round (or distribute time)
+
+    //// snapshot current players and balances
+
+    //// set adjustments for all players
+
+    //// execute distribute
+
+    //// remove any players that stopped streaming
+
+    return;
 };

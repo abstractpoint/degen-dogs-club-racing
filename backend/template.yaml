@@ -19,6 +19,34 @@ Globals:
       AllowHeaders: "'*'"
       AllowOrigin: "'*'"
 Resources:
+  ScheduleFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: arena-service/
+      Handler: app.scheduleHandler
+      Runtime: nodejs16.x
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Events:
+        CloudWatchEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(2 minutes)
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              Ref: InfraTable
+        - DynamoDBWritePolicy:
+            TableName:
+              Ref: InfraTable
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        EntryPoints:
+          - app.ts
   AuthFunction:
     Type: AWS::Serverless::Function
     Properties:
