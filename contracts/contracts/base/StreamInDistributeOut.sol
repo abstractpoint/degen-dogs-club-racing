@@ -24,8 +24,7 @@ abstract contract StreamInDistributeOut is SuperAppBase {
 
     event ActionExecuted(uint256 distributionAmount);
     event UnitsSet(uint128 distributionUnits);
-    event Log(uint i);
-    event Log2(bool i);
+    event InterimAccountUpdate(address indexed subscriber, uint256 timestamp, uint128 flowRate, uint128 flowAverage);
 
     address[] internal _pendingActions;
     uint256 _lastDistribution;
@@ -148,6 +147,8 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         // saving latest flowrate as new pending
         _interimAccounts[subscriber].newUnits = uint128(int128(flowRate));
         _interimAccounts[subscriber].newUnitsPending = true;
+
+        emit InterimAccountUpdate(subscriber, block.timestamp, _interimAccounts[subscriber].newUnits, _interimAccounts[subscriber].flowAverage);
     }
 
     function _updateAdjustmentUnits(address subscriber, uint128 adjustmentUnits, bool adjustmentPositive) internal {
