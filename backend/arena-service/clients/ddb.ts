@@ -295,6 +295,7 @@ export const scheduleUpdatePlayersAndArena = async ({
                     strength: random(),
                     timestamp: timestamp,
                     inArena: inflow.inArena,
+                    attributes: inflow.attributes,
                 }),
             },
         });

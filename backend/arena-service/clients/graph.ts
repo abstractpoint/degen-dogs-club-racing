@@ -53,9 +53,13 @@ export const accountTokenSnapshot = async (account: string, token: string) => {
 
     return {
         snapshot: graphResponse.data.accountTokenSnapshot,
-        inflows: graphResponse.data.account.inflows.map((inflow: Inflow) => ({
-            currentFlowRate: inflow.currentFlowRate,
-            sender: inflow.sender.id,
-        })),
+        inflows: new Map<string, any>([
+            ...graphResponse.data.account.inflows.map((inflow: Inflow) => [
+                inflow.sender.id,
+                {
+                    currentFlowRate: inflow.currentFlowRate,
+                },
+            ]),
+        ]),
     };
 };

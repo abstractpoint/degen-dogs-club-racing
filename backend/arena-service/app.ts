@@ -22,6 +22,7 @@ import { accountTokenSnapshot } from './clients/graph';
 import { getNFTId, getSubscriberBalance } from './clients/ethereum';
 import { uuid, random, saltedHash, recoverAddressFromSignature, createLTP, toDisplayNumber } from './utils';
 import { createToken, verifyToken } from './utils/auth';
+import { nftMetadata } from './clients/meta';
 
 const HttpError = customErrorFactory(function HttpError(code: number, message = '') {
     this.error_code = code;
@@ -270,21 +271,24 @@ export const scheduleHandler = async (event: ScheduledEvent): Promise<undefined>
     const updatedPlayers = [];
     let allShares = BigNumber.from('0');
     let arenaStateIdChanged = false;
-    for (const inflow of inflows) {
-        const subscriberBalanceShares = await getSubscriberBalance(inflow.sender);
+    for (const [sender, inflow] of inflows) {
+        const subscriberBalanceShares = await getSubscriberBalance(sender);
         allShares = allShares.add(BigNumber.from(subscriberBalanceShares));
 
         try {
-            const nftId = await getNFTId(inflow.sender, directory.dog, '0');
-            const existingPlayer = playersInDb?.find((each) => each.id === inflow.sender);
+            const nftId = await getNFTId(sender, directory.dog, '0');
+            const existingPlayer = playersInDb?.find((each) => each.id === sender);
 
             if (!existingPlayer && nftId && inflow.currentFlowRate !== '0') {
+                const { attributes } = await nftMetadata(nftId);
                 // TODO: Add check for duplicate NFT ids to avoid someone moving the token between wallets
                 newPlayers.push({
                     ...inflow,
+                    sender,
                     balanceShares: subscriberBalanceShares,
                     inArena: true,
                     nftId,
+                    attributes,
                 });
                 arenaStateIdChanged = true;
                 continue;

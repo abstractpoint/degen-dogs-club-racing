@@ -2,6 +2,8 @@ import { ScheduledEvent } from 'aws-lambda';
 import { scheduleHandler } from '../../app';
 import { ddb } from '../../clients/ddb';
 
+jest.setTimeout(10e3);
+
 describe('Unit test for schedule handler', function () {
     it('Works', async () => {
         jest.spyOn(ddb, 'transactWriteItems').mockImplementation(

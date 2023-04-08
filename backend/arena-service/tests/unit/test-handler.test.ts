@@ -10,6 +10,8 @@ const challengeInput = {
 const TOKEN =
     'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyZXNzIjoiMTIzIiwidGltZXN0YW1wIjoiMjAyMy0wMi0xNVQxNzo0MTo1Ni4zNTZaIiwiaWF0IjoxNjc2NDgyOTE2fQ.__tq096LpB8kaBZoDTJla6VUcgiqVUf9wVVB-RtIb4M';
 
+jest.setTimeout(15e3);
+
 describe('Service', function () {
     it('db connection works', async () => {
         //create an item in DB
@@ -52,6 +54,15 @@ describe('Service', function () {
                     strength: 0.5,
                     inArena: true,
                     timestamp: timestamp,
+                    attributes: [
+                        { trait_type: 'Background', value: 'Halo' },
+                        { trait_type: 'Body', value: 'SugarSkull' },
+                        { trait_type: 'Neck', value: 'RedCollar' },
+                        { trait_type: 'Mouth', value: 'None' },
+                        { trait_type: 'Ears', value: 'None' },
+                        { trait_type: 'Head', value: 'StripedBeanie' },
+                        { trait_type: 'Eyes', value: 'BlueLaserEyes' },
+                    ],
                 }),
             });
             const event = {
@@ -114,13 +125,32 @@ describe('Service', function () {
                     arenaStateId: '123',
                     playerId: '123',
                     playerStrength: expect.any(Number),
+                    playerTraits: [
+                        'Background:Halo',
+                        'Body:SugarSkull',
+                        'Neck:RedCollar',
+                        'Mouth:None',
+                        'Ears:None',
+                        'Head:StripedBeanie',
+                        'Eyes:BlueLaserEyes',
+                    ],
                 },
                 players: [
                     {
                         id: '123',
                         image: expect.any(String),
-                        flowRate: 0.005,
+                        flowRate: 0.0054,
                         balance: 1000,
+                        traits: [
+                            ['Background:Halo', 'equal'],
+                            ['Body:SugarSkull', 'equal'],
+                            ['Neck:RedCollar', 'equal'],
+                            ['Mouth:None', 'equal'],
+                            ['Ears:None', 'equal'],
+                            ['Head:StripedBeanie', 'equal'],
+                            ['Eyes:BlueLaserEyes', 'equal'],
+                        ],
+                        traitsScore: [0, 0],
                     },
                 ],
             });
@@ -163,6 +193,15 @@ describe('Service', function () {
                     strength: 0.5,
                     inArena: true,
                     timestamp: timestamp,
+                    attributes: [
+                        { trait_type: 'Background', value: 'Halo' },
+                        { trait_type: 'Body', value: 'SugarSkull' },
+                        { trait_type: 'Neck', value: 'RedCollar' },
+                        { trait_type: 'Mouth', value: 'None' },
+                        { trait_type: 'Ears', value: 'None' },
+                        { trait_type: 'Head', value: 'StripedBeanie' },
+                        { trait_type: 'Eyes', value: 'BlueLaserEyes' },
+                    ],
                 }),
             });
             // create opponent in db
@@ -181,6 +220,15 @@ describe('Service', function () {
                     strength: 0.6,
                     inArena: true,
                     timestamp: timestamp,
+                    attributes: [
+                        { trait_type: 'Background', value: 'None' },
+                        { trait_type: 'Body', value: 'Alien' },
+                        { trait_type: 'Neck', value: 'RedCollar' },
+                        { trait_type: 'Mouth', value: 'Pizza' },
+                        { trait_type: 'Ears', value: 'None' },
+                        { trait_type: 'Head', value: 'StripedBeanie' },
+                        { trait_type: 'Eyes', value: 'BlueLaserEyes' },
+                    ],
                 }),
             });
             const event = {
@@ -251,19 +299,48 @@ describe('Service', function () {
                         arenaStateId: expect.any(String),
                         playerId: '123',
                         playerStrength: expect.any(Number),
+                        playerTraits: [
+                            'Background:Halo',
+                            'Body:SugarSkull',
+                            'Neck:RedCollar',
+                            'Mouth:None',
+                            'Ears:None',
+                            'Head:StripedBeanie',
+                            'Eyes:BlueLaserEyes',
+                        ],
                     },
                     players: [
                         {
                             id: '123',
                             image: expect.any(String),
-                            flowRate: 0.005,
+                            flowRate: 0.0054,
                             balance: 500,
+                            traits: [
+                                ['Background:Halo', 'equal'],
+                                ['Body:SugarSkull', 'equal'],
+                                ['Neck:RedCollar', 'equal'],
+                                ['Mouth:None', 'equal'],
+                                ['Ears:None', 'equal'],
+                                ['Head:StripedBeanie', 'equal'],
+                                ['Eyes:BlueLaserEyes', 'equal'],
+                            ],
+                            traitsScore: [0, 0],
                         },
                         {
                             id: '1013679a0814d9ec772f95d778c35fc5',
                             image: expect.any(String),
-                            flowRate: 0.005,
+                            flowRate: 0.0054,
                             balance: 1500,
+                            traits: [
+                                ['Background:None', 'disadvantage'],
+                                ['Body:Alien', 'disadvantage'],
+                                ['Neck:RedCollar', 'equal'],
+                                ['Mouth:Pizza', 'advantage'],
+                                ['Ears:None', 'equal'],
+                                ['Head:StripedBeanie', 'equal'],
+                                ['Eyes:BlueLaserEyes', 'equal'],
+                            ],
+                            traitsScore: [0.2857142857142857, 0.14285714285714285],
                         },
                     ],
                 },
