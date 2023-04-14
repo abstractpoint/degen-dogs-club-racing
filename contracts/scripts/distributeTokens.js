@@ -20,6 +20,7 @@ async function main() {
 
   //NOTE - make sure you add the address of the previously deployed arena contract on your network
   const arenaAddress = "0x346E44e9207715dE96fDd6c00E6E002c956Cb08F";
+  const arenaAddress = "0xfB5A4128b1dF56818a9D2336F06183310c990a0D";
 
   const provider = new hre.ethers.providers.JsonRpcProvider(
     process.env.MUMBAI_URL

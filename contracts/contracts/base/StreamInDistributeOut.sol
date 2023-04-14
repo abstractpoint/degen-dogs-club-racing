@@ -65,13 +65,12 @@ abstract contract StreamInDistributeOut is SuperAppBase {
         // setting last distribution as contract creating time for the first time
         _lastDistribution = block.timestamp;
         _pausedFlowCreation = false;
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
-        host.registerApp(
-            SuperAppDefinitions.APP_LEVEL_FINAL |
-                SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
-                SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
-                SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
-        );
+        _host.registerAppWithKey(configWord, "k1");
 
         _idaLib.createIndex(superToken, INDEX_ID);
     }

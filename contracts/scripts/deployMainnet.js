@@ -23,12 +23,12 @@ async function main() {
     provider,
   });
 
-  // Getting the Goerli fDAIx Super Token object from the Framework object
-  // This is fDAIx on goerli - you can change this token to suit your network and desired token address
-  const bsctAddress = "0x600e5F4920f90132725b43412D47A76bC2219F92";
+  const bsctAddress = "0x76220628Fc2847C41B14967A75f3093F6E56998A";
+  // const bsctAddress = "0x3aD736904E9e65189c3000c7DD2c8AC8bB7cD4e3"; // maticx
 
   const signers = await hre.ethers.getSigners();
   console.log("Account balance:", (await signers[0].getBalance()).toString());
+  console.log(sf.settings.config)
   // We get the contract to deploy
   const Arena = await hre.ethers.getContractFactory("Arena");
   //deploy the arena account using the proper host address and the address of the first signer
@@ -38,7 +38,7 @@ async function main() {
     sf.settings.config.cfaV1Address,
     sf.settings.config.idaV1Address,
     bsctAddress,
-    signers[0].address
+    signers[0].address,
   );
 
   const arena = await Arena.deploy(
@@ -46,7 +46,7 @@ async function main() {
     sf.settings.config.cfaV1Address,
     sf.settings.config.idaV1Address,
     bsctAddress,
-    signers[0].address
+    signers[0].address,
   );
 
   await arena.deployed();

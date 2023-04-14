@@ -14,7 +14,15 @@ task("accounts", "Prints the list of accounts", async (_, hre) => {
 });
 
 module.exports = {
-  solidity: "0.8.16",
+  solidity: {
+    version: "0.8.16",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   mocha: {
     timeout: 100000000,
   },
@@ -33,6 +41,9 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     polygon: {
+      // gasPrice:50000000000,
+      // gasLimit: 2000000,
+      allowUnlimitedContractSize: true,
       url: process.env.POLYGON_URL || "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
