@@ -5,13 +5,34 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using System.Runtime.InteropServices;
-
 [Serializable]
 public class Metadata
 {
     public string arenaStateId;
     public string playerId;
     public double playerStrength;
+    public List<PlayerTrait> playerTraits;
+}
+
+
+[Serializable]
+public class Trait
+{
+    public string name;
+    public string value;
+    public string outcome;
+}
+[Serializable]
+public class PlayerTrait
+{
+    public string name;
+    public string value;
+}
+[Serializable]
+public class TraitsScore
+{
+    public float player;
+    public float opponent;
 }
 
 [Serializable]
@@ -21,7 +42,10 @@ public class Player
     public string image;
     public double flowRate;
     public int balance;
+    public List<Trait> traits;
+    public TraitsScore traitsScore;
 }
+
 
 [Serializable]
 public class PlayerData
@@ -31,10 +55,20 @@ public class PlayerData
 }
 
 [Serializable]
+public class Stage
+{
+    public float player;
+    public float opponent;
+}
+
+[Serializable]
 public class Payload
 {
     public float player;
     public float opponent;
+    public Stage streamStage;
+    public Stage traitStage;
+    public Stage strengthStage;
 }
 
 [Serializable]

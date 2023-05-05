@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
 using TMPro;
 
 public class Main : MonoBehaviour
@@ -21,6 +22,7 @@ public class Main : MonoBehaviour
     public int roundNumber = 0;
     //time boolean
     private bool timerIsRunning = false;
+    private float timeModulo;
 
     //index
     public string player, opponent;
@@ -33,9 +35,18 @@ public class Main : MonoBehaviour
     //strength
     public int playerstre, oppostre;
 
+    //token ids
+    public string playerNftId, oppoNftId;
+
     //pot (Coins)
     public int playerPot, oppoPot;
 
+    //
+    public float opponentTraitScore;
+    public float playerTraitScore;
+    public string[] opponentTraitValues;
+    public string[] traitsOutcome = new string[7];
+    public string[] playerTraitValues;
     private void Awake()
     {
         //instance
@@ -53,11 +64,28 @@ public class Main : MonoBehaviour
     {
         // Starts the timer automatically
         timerIsRunning = true;
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 30;
+        // adaptive rendering at 10 frames per second on start
+        OnDemandRendering.renderFrameInterval = 3;
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        {
+            if (Input.GetMouseButton(0) || (Input.touchCount > 0))
+            {
+                // If the mouse button or touch detected render at 30 FPS (every frame).
+                OnDemandRendering.renderFrameInterval = 1;
+            }
+            else
+            {
+                // If there is no mouse and no touch input then we can go back to 10 FPS (every 3 frames).
+                OnDemandRendering.renderFrameInterval = 3;
+            }
+        }
         //if timer is running
         if (timerIsRunning)
         {
@@ -80,6 +108,13 @@ public class Main : MonoBehaviour
                 //OnRefreshPanel();
             }
         }
+
+        float newTimeModulo = Time.time % 5f;
+        if (newTimeModulo < timeModulo) {
+            Debug.Log("Load arena again");
+            ServerManager.Instance.OnLoadArenaData();
+        }
+        timeModulo = newTimeModulo;
     }
 
     //Display time
@@ -123,20 +158,6 @@ public class Main : MonoBehaviour
         }
     }
 
-    //update coin
-    public void UpdatePlayerCoin()
-    {
-        //Player Coin Updation
-        int _playerIndex = ServerManager.Instance.playerData.players.FindIndex(data => data.id == player);
-        contentbox.GetChild(_playerIndex).GetComponent<Playermanager>().pot = playerPot;
-        contentbox.GetChild(_playerIndex).GetComponent<Playermanager>().SetupData();
-
-        //Opponent Coin Updation
-        int _opponentIndex = ServerManager.Instance.playerData.players.FindIndex(data => data.id == opponent);
-        contentbox.GetChild(_opponentIndex).GetComponent<Playermanager>().pot = oppoPot;
-        contentbox.GetChild(_opponentIndex).GetComponent<Playermanager>().SetupData();
-    }
-
     //Reset Panel
     public void OnResetPanel()
     {
@@ -156,21 +177,56 @@ public class Main : MonoBehaviour
 
         List<Player> playersData = ServerManager.Instance.playerData.players;
         Metadata playerMetadata = ServerManager.Instance.playerData.metadata;
-
+        
         //instantiate list data prefab with initial generated data
-        for (int i = 0; i < playersData.Count; i++)
-        {
-            GameObject chara = Instantiate(playerDataPrefab, Vector3.zero, Quaternion.identity, contentbox.transform);
-            chara.GetComponent<Playermanager>().index = playersData[i].id;
-            chara.GetComponent<Playermanager>().DogImage = ServerManager.Instance.imageDictionary[playersData[i].image];
-            chara.GetComponent<Playermanager>().power = (float)(playersData[i].flowRate * 60 * 60);//(float)Random.Range(0f, 100f);
-            chara.GetComponent<Playermanager>().pot = playersData[i].balance;//Random.Range(700, 1000);
-            chara.GetComponent<Playermanager>().strenghvalue = (float)playerMetadata.playerStrength * 100; //(int)(System.Math.Round(Random.Range(0.01f, 1.00f), 2) * 100);
-            bool isPLayAs = playerMetadata.playerId == playersData[i].id || playerMetadata.playerId == "";
-            chara.GetComponent<Playermanager>().playAs = isPLayAs;
-            if (isPLayAs) chara.GetComponent<Playermanager>().playasButton();
-            chara.transform.GetChild(3).gameObject.SetActive(!isPLayAs);
-            chara.transform.GetChild(4).gameObject.SetActive(isPLayAs);
-        }
+      for (int i = 0; i < playersData.Count; i++)
+      {
+          // Instantiate the playerDataPrefab and get a reference to its Playermanager component
+          GameObject chara = Instantiate(playerDataPrefab, Vector3.zero, Quaternion.identity, contentbox.transform);
+          Playermanager playerManager = chara.GetComponent<Playermanager>();
+      
+          // Set the properties of the Playermanager component based on the player data
+          playerManager.index = playersData[i].id;
+          playerManager.DogImage = ServerManager.Instance.imageDictionary[playersData[i].image];
+          playerManager.nftId = playersData[i].image; // a number of nft token used for retrieving image and for display
+          playerManager.power = (float)(playersData[i].flowRate * 60 * 60);
+          playerManager.pot = playersData[i].balance;
+          playerManager.strenghvalue = (float)playerMetadata.playerStrength * 100;
+          // Setting traits 
+          playerManager.opponentTraitScore = playersData[i].traitsScore.opponent;
+          playerManager.playerTraitScore = playersData[i].traitsScore.player;
+          // Loop through the player's traits and assign the trait outcomes and opponent trait values
+          for (int j = 0; j < playerManager.traits.Length; j++)
+          {
+              string traitName = playerManager.traits[j];
+              Trait trait = playersData[i].traits.Find(t => t.name == traitName);
+              if (trait != null)
+              {
+         
+                  // Assign trait outcome
+                  playerManager.traitsOutcome[j] = trait.outcome;
+
+                  // Assign opponent trait value
+                  playerManager.opponentTraitValues[j] = trait.value;
+              }
+              else
+              {
+                  Debug.Log("Null " + traitName);
+              }
+           
+          }
+         
+          bool isPLayAs = playerMetadata.playerId == playersData[i].id || playerMetadata.playerId == "";
+          playerManager.playAs = isPLayAs;
+          if (isPLayAs) playerManager.playasButton();
+          playerManager.transform.GetChild(3).gameObject.SetActive(!isPLayAs);
+          playerManager.transform.GetChild(4).gameObject.SetActive(isPLayAs);
+      
+            
+        
+ 
+          
+      }
+
     }
 }

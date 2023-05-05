@@ -11,10 +11,25 @@ public class ChallengeConfirmScreen : MonoBehaviour
     public Image playerphoto, opponentphoto;
     public Slider playerrandomvalue;
     public TextMeshProUGUI playerstrength;
-
+    public TextMeshProUGUI playerNumber;
+    public TextMeshProUGUI opponentNumber;
     public Button startRaceButton;
     public TextMeshProUGUI startRaceButtonText;
     public TextMeshProUGUI resultText;
+    public TextMeshProUGUI playerProbText;
+    public TextMeshProUGUI opponentProbText;
+    public TextMeshProUGUI[] traitsTextsPlayer;
+    public TextMeshProUGUI[] traitsTextsOpponent;
+    public string arenaStateIdWhenChallenge;
+
+    public Image[] playerTicks;
+    public Image[] opponentTicks;
+    
+
+
+    [SerializeField] private Sprite tick;
+    [SerializeField] private Sprite cross;
+    [SerializeField] private Sprite dash;
 
     // Start is called before the first frame update
     void Start()
@@ -28,8 +43,11 @@ public class ChallengeConfirmScreen : MonoBehaviour
 
     public void SetChallengeData()
     {
+        arenaStateIdWhenChallenge = ServerManager.Instance.playerData.metadata.arenaStateId;
         //set player pic
         playerphoto.sprite = Main.instance.playerimage;
+        opponentNumber.text = "#" + Main.instance.oppoNftId.PadLeft(4, '0');
+        playerNumber.text = "#" + Main.instance.playerNftId.PadLeft(4, '0');
         //set opponent pic
         opponentphoto.sprite = Main.instance.opponentimage;
         //set player random value
@@ -37,6 +55,42 @@ public class ChallengeConfirmScreen : MonoBehaviour
         //set player strength 
         playerstrength.text = Main.instance.playerstre.ToString() + "%";
 
+        for (int i = 0; i < traitsTextsOpponent.Length; i++)
+        {
+         
+           traitsTextsOpponent[i].SetText(Main.instance.opponentTraitValues[i]);
+        }
+        
+        for (int i = 0; i < traitsTextsPlayer.Length; i++)
+        {
+         
+            traitsTextsPlayer[i].SetText(Main.instance.playerTraitValues[i]);
+        }
+
+        for (int i = 0; i < playerTicks.Length; i++)
+        {
+            if (Main.instance.traitsOutcome[i] == "equal")
+            {
+                playerTicks[i].sprite = dash;
+                opponentTicks[i].sprite = dash;
+            }
+            else if (Main.instance.traitsOutcome[i] == "advantage")
+            {
+                playerTicks[i].sprite = cross;
+                opponentTicks[i].sprite = tick;
+            }
+            else if (Main.instance.traitsOutcome[i] == "disadvantage")
+            {
+                playerTicks[i].sprite = tick;
+                opponentTicks[i].sprite = cross;
+            }
+        }
+
+        int playerProb = (int) (Main.instance.playerTraitScore * 100);
+        int opponentProb = (int) (Main.instance.opponentTraitScore * 100);
+        playerProbText.SetText(playerProb + "%");
+        opponentProbText.SetText(opponentProb + "%");
+       
         startRaceButtonText.SetText("START RACE");
         resultText.gameObject.SetActive(false);
         startRaceButton.gameObject.SetActive(true);
@@ -50,7 +104,7 @@ public class ChallengeConfirmScreen : MonoBehaviour
             ServerManager.Instance.OnLoadChallengeAPI(
                 new PostData(
                     Main.instance.opponent.ToString(),
-                    ServerManager.Instance.playerData.metadata.arenaStateId
+                    arenaStateIdWhenChallenge
                 )
             );
     }

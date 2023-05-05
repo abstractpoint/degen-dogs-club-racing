@@ -151,7 +151,6 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 472239847}
   m_RootOrder: 0
@@ -289,7 +288,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 457228371}
   - {fileID: 1373459210}
@@ -331,7 +329,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
@@ -364,7 +361,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -614,7 +610,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1373459210}
   m_RootOrder: 0
@@ -634,7 +629,6 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2.1252048, y: 2.1252048, z: 2.1252048}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1373459208}
   - {fileID: 1373459214}
@@ -657,7 +651,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1373459210}
   m_RootOrder: 2
@@ -677,7 +670,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1373459210}
   m_RootOrder: 1
@@ -716,6 +708,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 968de74c821461645a0383304673a047, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  jwt: 
   m_BaseGetUrl: https://3emqiij3u3.execute-api.eu-west-1.amazonaws.com/Prod/arena
   m_BasePostUrl: https://3emqiij3u3.execute-api.eu-west-1.amazonaws.com/Prod/challenge
   playerData:
@@ -723,6 +716,7 @@ MonoBehaviour:
       arenaStateId: 
       playerId: 
       playerStrength: 0
+      playerTraits: []
     players: []
   challengeData:
     challenge:
@@ -731,11 +725,21 @@ MonoBehaviour:
       payload:
         player: 0
         opponent: 0
+        streamStage:
+          player: 0
+          opponent: 0
+        traitStage:
+          player: 0
+          opponent: 0
+        strengthStage:
+          player: 0
+          opponent: 0
     arena:
       metadata:
         arenaStateId: 
         playerId: 
         playerStrength: 0
+        playerTraits: []
       players: []
 --- !u!4 &1552086420
 Transform:
@@ -747,7 +751,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -831,7 +834,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -925,7 +927,6 @@ Transform:
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
