@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, ScheduledEvent } from 'aws-lambda';
 import { customErrorFactory } from 'ts-custom-error';
 import { BigNumber } from 'ethers';
+import { defaultAbiCoder, getAddress } from 'ethers/lib/utils';
 import {
     arenaResponse,
     challengeResponse,
@@ -23,6 +24,7 @@ import { getNFTId, getSubscriberBalance } from './clients/ethereum';
 import { uuid, random, saltedHash, recoverAddressFromSignature, createLTP, toDisplayNumber } from './utils';
 import { createToken, verifyToken } from './utils/auth';
 import { nftMetadata } from './clients/meta';
+import { logTopics } from './constants';
 
 const HttpError = customErrorFactory(function HttpError(code: number, message = '') {
     this.error_code = code;
@@ -65,6 +67,7 @@ export const arenaHandler = async (event: APIGatewayProxyEvent): Promise<APIGate
             player = {
                 id: '',
                 strength: 0,
+                attributes: [],
             };
         }
 
@@ -166,7 +169,7 @@ export const challengeHandler = async (event: APIGatewayProxyEvent): Promise<API
             response = {
                 statusCode: 200,
                 headers: corsHeaders,
-                body: JSON.stringify(challengeResponse(stateId, player, newPlayerStrength, Items!)),
+                body: JSON.stringify(challengeResponse(stateId, player, Items!)),
             };
         }
     } catch (err) {
@@ -350,4 +353,61 @@ export const scheduleHandler = async (event: ScheduledEvent): Promise<undefined>
     //// remove any players that stopped streaming
 
     return;
+};
+
+export const webhookHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    let response: APIGatewayProxyResult;
+    let Items;
+    const body = JSON.parse(event.body as string);
+    const logs = body.event?.data?.block?.logs;
+
+    if (!logs || logs.length === 0) {
+        response = {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({ response: 'ok' }),
+        };
+        return response;
+    }
+
+    try {
+        Items = await queryArenaUnfiltered().then(({ Items }) => Items?.map((item) => unmarshall(item)));
+
+        if (!Items) {
+            throw new Error('Unable to retrieve current arena');
+        }
+    } catch (e) {
+        console.log(e);
+    }
+
+    const playersInDb = Items?.filter((item) => item.sk.startsWith('#PLAYER#'));
+
+    const interimAccountUpdateLogs = logs.filter((each: any) => each.topics.includes(logTopics.interimAccountUpdate));
+
+    const topic = '0x0000000000000000000000004444ad20879051b696a1c14ccf6e3b0459466666';
+    const address = defaultAbiCoder.decode(['address'], topic);
+    const data =
+        '0x00000000000000000000000000000000000000000000000000000000644830b50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001a923a39';
+    const decoded = defaultAbiCoder.decode(['uint256', 'uint128', 'uint128'], data);
+
+    console.log(address, decoded[0].toString(), decoded[1].toString(), decoded[2].toString());
+
+    const timestamp = new Date().toISOString();
+    const eventItem = {
+        pk: `EVENT#latest`,
+        sk: `#SELF`,
+        // gs1pk: `EVENT#${address}`,
+        // gs1sk: `#SELF`,
+        body: event.body,
+        timestamp: timestamp,
+    };
+    await putItem(eventItem);
+
+    response = {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({ response: 'ok' }),
+    };
+
+    return response;
 };

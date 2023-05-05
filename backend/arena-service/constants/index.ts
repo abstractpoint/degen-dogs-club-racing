@@ -9,7 +9,7 @@ export const directory = {
 };
 
 const flatPlayerTraits = (traits: any[] = []) => {
-    return traits.map((each) => `${each.trait_type}#${each.value}`);
+    return traits.map((each) => ({ name: each.trait_type, value: each.value }));
 };
 
 enum Outcome {
@@ -22,7 +22,11 @@ const flatTraitsWithOutcome = (traits: any[] = [], playerTraits: any[] = []) => 
     const traitsTransformed = traits.map((each, i) => {
         const traitLabel = `${each.trait_type}#${each.value}` as keyof typeof traitMap;
         const [ownGroup, winsAgainst] = traitMap[traitLabel];
-        const [playerGroup, playerWinsAgainst] = traitMap[playerTraits[i] as keyof typeof traitMap];
+        if (playerTraits.length === 0) {
+            return { name: each.trait_type, value: each.value, outcome: Outcome.EQUAL };
+        }
+        const playerTraitLabel = `${playerTraits[i].name}#${playerTraits[i].value}`;
+        const [playerGroup, playerWinsAgainst] = traitMap[playerTraitLabel as keyof typeof traitMap];
         let outcome;
 
         if (ownGroup === playerGroup) {
@@ -33,20 +37,21 @@ const flatTraitsWithOutcome = (traits: any[] = [], playerTraits: any[] = []) => 
             outcome = Outcome.DISADVANTAGE;
         }
 
-        return [traitLabel, outcome];
+        return { name: each.trait_type, value: each.value, outcome };
     });
-    const traitsScore = traitsTransformed
-        .reduce(
-            (counts, [_, outcome]) => [
-                outcome !== Outcome.ADVANTAGE ? counts[0] + 1 : counts[0],
-                outcome !== Outcome.DISADVANTAGE ? counts[1] + 1 : counts[1],
-            ],
-            [0, 0],
-        )
-        .map((each: number) => (traits.length > 0 ? each / traits.length : 0));
+    const traitsScore = traitsTransformed.reduce(
+        (counts, { outcome }) => ({
+            player: outcome !== Outcome.ADVANTAGE ? counts.player + 1 : counts.player,
+            opponent: outcome !== Outcome.DISADVANTAGE ? counts.opponent + 1 : counts.opponent,
+        }),
+        { player: 0, opponent: 0 },
+    );
     return {
         traits: traitsTransformed,
-        traitsScore,
+        traitsScore: {
+            player: traits.length > 0 ? traitsScore.player / traits.length : 0,
+            opponent: traits.length > 0 ? traitsScore.opponent / traits.length : 0,
+        },
     };
 };
 
@@ -97,17 +102,12 @@ export const playerOpponentBalanceMutation = (player: Record<string, any>, oppon
     };
 };
 
-export const challengeResponse = (
-    stateId: string,
-    player: Record<string, any>,
-    newPlayerStrength: number,
-    Items: Record<string, any>[],
-) => ({
+export const challengeResponse = (stateId: string, player: Record<string, any>, Items: Record<string, any>[]) => ({
     challenge: {
         result: 'ARENA_CHANGED',
         message: 'Changes in the arena',
     },
-    arena: arenaResponse(stateId, { id: player.id, strength: newPlayerStrength }, Items),
+    arena: arenaResponse(stateId, player, Items),
 });
 
 export const challengeResponseRace = (
@@ -118,19 +118,47 @@ export const challengeResponseRace = (
     newPlayerStrength: number,
     Items: Record<string, any>[],
 ) => {
-    const result = player.strength > opponent.strength ? 'PLAYER_WIN' : 'PLAYER_LOSS';
+    const factor = 1000;
+    const factorBN = BigNumber.from(factor);
+    const plFlBN = BigNumber.from(player.flowRate);
+    const opFlBN = BigNumber.from(opponent.flowRate);
+    const playerStreamPercent = plFlBN.gt(opFlBN) ? 1 : plFlBN.mul(factorBN).div(opFlBN).toNumber() / factor;
+    const opponentStreamPercent = opFlBN.gt(plFlBN) ? 1 : opFlBN.mul(factorBN).div(plFlBN).toNumber() / factor;
+
+    const streamStage = {
+        player: Math.max(playerStreamPercent, 0.5),
+        opponent: Math.max(opponentStreamPercent, 0.5),
+    };
+
+    const { traitsScore: traitStage } = flatTraitsWithOutcome(opponent.attributes, flatPlayerTraits(player.attributes));
+
+    const strengthStage = {
+        player: player.strength,
+        opponent: opponent.strength,
+    };
+
+    const playerSum = streamStage.player + traitStage.player + strengthStage.player;
+    const opponentSum = streamStage.opponent + traitStage.opponent + strengthStage.opponent;
+    const playerSumNormalised = playerSum > opponentSum ? 1 : playerSum / opponentSum;
+    const opponentSumNormalised = opponentSum > playerSum ? 1 : opponentSum / playerSum;
+
+    const result = playerSumNormalised > opponentSumNormalised ? 'PLAYER_WIN' : 'PLAYER_LOSS';
     const coins = toDisplayNumber(coinsDifference, 3);
     const message =
-        player.strength > opponent.strength
+        playerSumNormalised > opponentSumNormalised
             ? `You have won & opponent lost ${coins} coins.`
             : `Opponent has won, you lost ${coins} coins.`;
+
     return {
         challenge: {
             result,
             message,
             payload: {
-                player: player.strength,
-                opponent: opponent.strength,
+                player: playerSumNormalised,
+                opponent: opponentSumNormalised,
+                streamStage,
+                traitStage,
+                strengthStage,
             },
         },
         arena: arenaResponse(stateId, { ...player, strength: newPlayerStrength }, Items),
@@ -144,4 +172,8 @@ export const apiUrls = {
     nft: {
         meta: 'https://api.degendogs.club/meta',
     },
+};
+
+export const logTopics = {
+    interimAccountUpdate: '0x51469a4939d1752a5c89cee4ca2127dc885265a976dca32e5291f17a53a923e4',
 };

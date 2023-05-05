@@ -126,13 +126,34 @@ describe('Service', function () {
                     playerId: '123',
                     playerStrength: expect.any(Number),
                     playerTraits: [
-                        'Background:Halo',
-                        'Body:SugarSkull',
-                        'Neck:RedCollar',
-                        'Mouth:None',
-                        'Ears:None',
-                        'Head:StripedBeanie',
-                        'Eyes:BlueLaserEyes',
+                        {
+                            name: 'Background',
+                            value: 'Halo',
+                        },
+                        {
+                            name: 'Body',
+                            value: 'SugarSkull',
+                        },
+                        {
+                            name: 'Neck',
+                            value: 'RedCollar',
+                        },
+                        {
+                            name: 'Mouth',
+                            value: 'None',
+                        },
+                        {
+                            name: 'Ears',
+                            value: 'None',
+                        },
+                        {
+                            name: 'Head',
+                            value: 'StripedBeanie',
+                        },
+                        {
+                            name: 'Eyes',
+                            value: 'BlueLaserEyes',
+                        },
                     ],
                 },
                 players: [
@@ -142,15 +163,43 @@ describe('Service', function () {
                         flowRate: 0.0054,
                         balance: 1000,
                         traits: [
-                            ['Background:Halo', 'equal'],
-                            ['Body:SugarSkull', 'equal'],
-                            ['Neck:RedCollar', 'equal'],
-                            ['Mouth:None', 'equal'],
-                            ['Ears:None', 'equal'],
-                            ['Head:StripedBeanie', 'equal'],
-                            ['Eyes:BlueLaserEyes', 'equal'],
+                            {
+                                name: 'Background',
+                                outcome: 'equal',
+                                value: 'Halo',
+                            },
+                            {
+                                name: 'Body',
+                                outcome: 'equal',
+                                value: 'SugarSkull',
+                            },
+                            {
+                                name: 'Neck',
+                                outcome: 'equal',
+                                value: 'RedCollar',
+                            },
+                            {
+                                name: 'Mouth',
+                                outcome: 'equal',
+                                value: 'None',
+                            },
+                            {
+                                name: 'Ears',
+                                outcome: 'equal',
+                                value: 'None',
+                            },
+                            {
+                                name: 'Head',
+                                outcome: 'equal',
+                                value: 'StripedBeanie',
+                            },
+                            {
+                                name: 'Eyes',
+                                outcome: 'equal',
+                                value: 'BlueLaserEyes',
+                            },
                         ],
-                        traitsScore: [0, 0],
+                        traitsScore: { player: 1, opponent: 1 },
                     },
                 ],
             });
@@ -190,7 +239,7 @@ describe('Service', function () {
                     flowRate: '0000005400000000000000',
                     balance: '1000000000000000000000',
                     adjustment: '0000000000000000000000',
-                    strength: 0.5,
+                    strength: 0.1,
                     inArena: true,
                     timestamp: timestamp,
                     attributes: [
@@ -290,8 +339,20 @@ describe('Service', function () {
                     result: 'PLAYER_LOSS',
                     message: 'Opponent has won, you lost 500 coins.',
                     payload: {
-                        player: 0.5,
-                        opponent: 0.6,
+                        opponent: 1,
+                        player: 0.845679012345679,
+                        streamStage: {
+                            opponent: 1,
+                            player: 1,
+                        },
+                        strengthStage: {
+                            opponent: 0.6,
+                            player: 0.1,
+                        },
+                        traitStage: {
+                            opponent: 0.7142857142857143,
+                            player: 0.8571428571428571,
+                        },
                     },
                 },
                 arena: {
@@ -300,13 +361,34 @@ describe('Service', function () {
                         playerId: '123',
                         playerStrength: expect.any(Number),
                         playerTraits: [
-                            'Background:Halo',
-                            'Body:SugarSkull',
-                            'Neck:RedCollar',
-                            'Mouth:None',
-                            'Ears:None',
-                            'Head:StripedBeanie',
-                            'Eyes:BlueLaserEyes',
+                            {
+                                name: 'Background',
+                                value: 'Halo',
+                            },
+                            {
+                                name: 'Body',
+                                value: 'SugarSkull',
+                            },
+                            {
+                                name: 'Neck',
+                                value: 'RedCollar',
+                            },
+                            {
+                                name: 'Mouth',
+                                value: 'None',
+                            },
+                            {
+                                name: 'Ears',
+                                value: 'None',
+                            },
+                            {
+                                name: 'Head',
+                                value: 'StripedBeanie',
+                            },
+                            {
+                                name: 'Eyes',
+                                value: 'BlueLaserEyes',
+                            },
                         ],
                     },
                     players: [
@@ -316,15 +398,43 @@ describe('Service', function () {
                             flowRate: 0.0054,
                             balance: 500,
                             traits: [
-                                ['Background:Halo', 'equal'],
-                                ['Body:SugarSkull', 'equal'],
-                                ['Neck:RedCollar', 'equal'],
-                                ['Mouth:None', 'equal'],
-                                ['Ears:None', 'equal'],
-                                ['Head:StripedBeanie', 'equal'],
-                                ['Eyes:BlueLaserEyes', 'equal'],
+                                {
+                                    name: 'Background',
+                                    outcome: 'equal',
+                                    value: 'Halo',
+                                },
+                                {
+                                    name: 'Body',
+                                    outcome: 'equal',
+                                    value: 'SugarSkull',
+                                },
+                                {
+                                    name: 'Neck',
+                                    outcome: 'equal',
+                                    value: 'RedCollar',
+                                },
+                                {
+                                    name: 'Mouth',
+                                    outcome: 'equal',
+                                    value: 'None',
+                                },
+                                {
+                                    name: 'Ears',
+                                    outcome: 'equal',
+                                    value: 'None',
+                                },
+                                {
+                                    name: 'Head',
+                                    outcome: 'equal',
+                                    value: 'StripedBeanie',
+                                },
+                                {
+                                    name: 'Eyes',
+                                    outcome: 'equal',
+                                    value: 'BlueLaserEyes',
+                                },
                             ],
-                            traitsScore: [0, 0],
+                            traitsScore: { player: 1, opponent: 1 },
                         },
                         {
                             id: '1013679a0814d9ec772f95d778c35fc5',
@@ -332,15 +442,43 @@ describe('Service', function () {
                             flowRate: 0.0054,
                             balance: 1500,
                             traits: [
-                                ['Background:None', 'disadvantage'],
-                                ['Body:Alien', 'disadvantage'],
-                                ['Neck:RedCollar', 'equal'],
-                                ['Mouth:Pizza', 'advantage'],
-                                ['Ears:None', 'equal'],
-                                ['Head:StripedBeanie', 'equal'],
-                                ['Eyes:BlueLaserEyes', 'equal'],
+                                {
+                                    name: 'Background',
+                                    outcome: 'disadvantage',
+                                    value: 'None',
+                                },
+                                {
+                                    name: 'Body',
+                                    outcome: 'disadvantage',
+                                    value: 'Alien',
+                                },
+                                {
+                                    name: 'Neck',
+                                    outcome: 'equal',
+                                    value: 'RedCollar',
+                                },
+                                {
+                                    name: 'Mouth',
+                                    outcome: 'advantage',
+                                    value: 'Pizza',
+                                },
+                                {
+                                    name: 'Ears',
+                                    outcome: 'equal',
+                                    value: 'None',
+                                },
+                                {
+                                    name: 'Head',
+                                    outcome: 'equal',
+                                    value: 'StripedBeanie',
+                                },
+                                {
+                                    name: 'Eyes',
+                                    outcome: 'equal',
+                                    value: 'BlueLaserEyes',
+                                },
                             ],
-                            traitsScore: [0.2857142857142857, 0.14285714285714285],
+                            traitsScore: { player: 0.8571428571428571, opponent: 0.7142857142857143 },
                         },
                     ],
                 },

@@ -19,6 +19,35 @@ Globals:
       AllowHeaders: "'*'"
       AllowOrigin: "'*'"
 Resources:
+  WebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: arena-service/
+      Handler: app.webhookHandler
+      Runtime: nodejs16.x
+      Timeout: 6
+      Architectures:
+        - x86_64
+      Events:
+        Arena:
+          Type: Api
+          Properties:
+            Path: /webhook
+            Method: post
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              Ref: InfraTable
+        - DynamoDBWritePolicy:
+            TableName:
+              Ref: InfraTable
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        EntryPoints:
+          - app.ts
   ScheduleFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
