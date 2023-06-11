@@ -254,6 +254,7 @@ export const scheduleUpdatePlayersAndArena = async ({
     const transactItems = [];
 
     console.log('currentContractBalanceBN', currentContractBalanceBN.toString());
+    console.log(newStateId, newPlayers.length, updatedPlayers.length);
 
     if (newStateId) {
         transactItems.push({
@@ -301,6 +302,7 @@ export const scheduleUpdatePlayersAndArena = async ({
         });
     });
     updatedPlayers.forEach((inflow) => {
+        console.log(inflow);
         transactItems.push({
             Update: {
                 TableName: process.env.TABLE_NAME,
@@ -327,6 +329,9 @@ export const scheduleUpdatePlayersAndArena = async ({
             },
         });
     });
+    console.log('transactItems', transactItems.length);
+    console.log(JSON.stringify(transactItems, undefined, 2));
+
     if (transactItems.length > 0) {
         return ddb.transactWriteItems({
             TransactItems: transactItems,

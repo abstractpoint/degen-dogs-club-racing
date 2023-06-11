@@ -44,7 +44,7 @@ interface Inflow {
 }
 
 export const accountTokenSnapshot = async (account: string, token: string) => {
-    const { data: graphResponse } = await axios.post(apiUrls.mumbai.graph, {
+    const { data: graphResponse } = await axios.post(apiUrls.polygon.graph, {
         query: accountTokenSnapshotQuery(account, token),
         variables: {
             id: account,
@@ -52,9 +52,9 @@ export const accountTokenSnapshot = async (account: string, token: string) => {
     });
 
     return {
-        snapshot: graphResponse.data.accountTokenSnapshot,
+        snapshot: graphResponse.data?.accountTokenSnapshot,
         inflows: new Map<string, any>([
-            ...graphResponse.data.account.inflows.map((inflow: Inflow) => [
+            ...graphResponse.data?.account.inflows.map((inflow: Inflow) => [
                 inflow.sender.id,
                 {
                     currentFlowRate: inflow.currentFlowRate,

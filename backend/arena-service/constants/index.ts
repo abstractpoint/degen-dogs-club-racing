@@ -4,8 +4,8 @@ import { traitMap } from './trait-map';
 
 export const directory = {
     dog: '0xA920464B46548930bEfECcA5467860B2b4C2B5b9',
-    arena: '0x346e44e9207715de96fdd6c00e6e002c956cb08f',
-    superToken: '0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f',
+    arena: '0xc131589fc8b0e79576667175f72d92a5266542b0', // mainnet polygon deployment
+    superToken: '0x76220628fc2847c41b14967a75f3093f6e56998a', // BSCT supertoken
 };
 
 const flatPlayerTraits = (traits: any[] = []) => {
@@ -166,6 +166,9 @@ export const challengeResponseRace = (
 };
 
 export const apiUrls = {
+    polygon: {
+        graph: 'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic',
+    },
     mumbai: {
         graph: 'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai',
     },

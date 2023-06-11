@@ -382,7 +382,16 @@ export const webhookHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
 
     const playersInDb = Items?.filter((item) => item.sk.startsWith('#PLAYER#'));
 
-    const interimAccountUpdateLogs = logs.filter((each: any) => each.topics.includes(logTopics.interimAccountUpdate));
+    const interimAccountUpdateLogs = logs.filter(
+        (each: any) => each.topics.includes(logTopics.interimAccountUpdate) && each.account.address === directory.arena,
+    );
+
+    // verify that the event is for correct deployed contract before acting on it
+    // verify webhook key
+    // extract address of subscriber, timestamp, flowrate, flow-average
+    // update just a single player for each event
+
+    interimAccountUpdateLogs.forEach((each: any) => console.log('each', each));
 
     const topic = '0x0000000000000000000000004444ad20879051b696a1c14ccf6e3b0459466666';
     const address = defaultAbiCoder.decode(['address'], topic);
